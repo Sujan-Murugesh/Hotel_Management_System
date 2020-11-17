@@ -375,8 +375,8 @@ public class Food extends Main_Window {
     //======================================================================================
         public void showAvailable_foods_table_clicked(){
             try {
-            int index = AddFoodTable.getSelectedRow();  //i changed the editing colume in jetable
-            String Food_ID = (AddFoodTable.getModel().getValueAt(index, 0).toString());
+            int index = ViewFoodTable.getSelectedRow();  //i changed the editing colume in jetable
+            String Food_ID = (ViewFoodTable.getModel().getValueAt(index, 0).toString());
 
             String qry = "select * from `food` where `id` = '" + Food_ID + "' ";
             ps = conn.prepareStatement(qry);
@@ -416,7 +416,7 @@ public class Food extends Main_Window {
             String qry = "select `id`,`type`,`name`,`price`,`description` from food";
             ps = conn.prepareStatement(qry);
             rs = ps.executeQuery();
-            AddFoodTable.setModel(DbUtils.resultSetToTableModel(rs));
+            ViewFoodTable.setModel(DbUtils.resultSetToTableModel(rs));
         } catch (SQLException | NumberFormatException e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
