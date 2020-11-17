@@ -2237,78 +2237,74 @@
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Group type="103" groupAlignment="0" attributes="0">
                                               <Group type="102" alignment="0" attributes="0">
-                                                  <Group type="103" groupAlignment="0" attributes="0">
-                                                      <Group type="102" alignment="0" attributes="0">
-                                                          <Component id="jLabel57" min="-2" max="-2" attributes="0"/>
-                                                          <EmptySpace max="32767" attributes="0"/>
-                                                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                                              <Component id="jSeparator29" alignment="0" max="32767" attributes="0"/>
-                                                              <Component id="Add_food_id" alignment="0" min="-2" pref="381" max="-2" attributes="0"/>
-                                                          </Group>
-                                                      </Group>
-                                                      <Group type="102" alignment="1" attributes="0">
-                                                          <Component id="jLabel53" max="32767" attributes="0"/>
-                                                          <EmptySpace type="separate" max="-2" attributes="0"/>
-                                                          <Group type="103" groupAlignment="1" max="-2" attributes="0">
-                                                              <Component id="jSeparator26" alignment="0" max="32767" attributes="0"/>
-                                                              <Component id="Add_food_name" alignment="0" min="-2" pref="381" max="-2" attributes="0"/>
-                                                          </Group>
-                                                      </Group>
-                                                      <Group type="102" alignment="1" attributes="0">
-                                                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                                              <Component id="jLabel56" max="32767" attributes="0"/>
-                                                              <Component id="jLabel54" min="-2" pref="162" max="-2" attributes="0"/>
-                                                          </Group>
-                                                          <EmptySpace type="separate" max="32767" attributes="0"/>
-                                                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                                              <Component id="jSeparator28" max="32767" attributes="0"/>
-                                                              <Component id="Add_food_description" min="-2" pref="381" max="-2" attributes="0"/>
-                                                              <Component id="jSeparator27" alignment="0" max="32767" attributes="0"/>
-                                                              <Component id="Add_food_price" alignment="0" min="-2" pref="381" max="-2" attributes="0"/>
-                                                          </Group>
-                                                      </Group>
-                                                      <Group type="102" alignment="0" attributes="0">
-                                                          <Component id="jLabel55" min="-2" pref="162" max="-2" attributes="0"/>
-                                                          <Group type="103" groupAlignment="0" attributes="0">
-                                                              <Group type="102" attributes="0">
-                                                                  <EmptySpace type="separate" max="-2" attributes="0"/>
-                                                                  <Component id="FoodWarningText" max="32767" attributes="0"/>
-                                                              </Group>
-                                                              <Group type="102" attributes="0">
-                                                                  <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
-                                                                  <Component id="jComboBoxFoodType" max="32767" attributes="0"/>
-                                                              </Group>
-                                                          </Group>
-                                                      </Group>
-                                                      <Group type="102" alignment="1" attributes="0">
-                                                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                                                          <Component id="jButton24" min="-2" max="-2" attributes="0"/>
-                                                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                                                          <Component id="jButton21" min="-2" max="-2" attributes="0"/>
-                                                          <EmptySpace max="-2" attributes="0"/>
-                                                          <Component id="jButton22" min="-2" max="-2" attributes="0"/>
-                                                          <EmptySpace max="-2" attributes="0"/>
-                                                          <Component id="jButton23" min="-2" max="-2" attributes="0"/>
-                                                      </Group>
+                                                  <Component id="jLabel57" min="-2" max="-2" attributes="0"/>
+                                                  <EmptySpace max="32767" attributes="0"/>
+                                                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                                                      <Component id="jSeparator29" alignment="0" max="32767" attributes="0"/>
+                                                      <Component id="Add_food_id" alignment="0" min="-2" pref="381" max="-2" attributes="0"/>
                                                   </Group>
-                                                  <EmptySpace type="separate" max="-2" attributes="0"/>
                                               </Group>
                                               <Group type="102" alignment="1" attributes="0">
+                                                  <Component id="jLabel53" max="32767" attributes="0"/>
+                                                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                                                  <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                                                      <Component id="jSeparator26" alignment="0" max="32767" attributes="0"/>
+                                                      <Component id="Add_food_name" alignment="0" min="-2" pref="381" max="-2" attributes="0"/>
+                                                  </Group>
+                                              </Group>
+                                              <Group type="102" alignment="1" attributes="0">
+                                                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                                                      <Component id="jLabel56" max="32767" attributes="0"/>
+                                                      <Component id="jLabel54" min="-2" pref="162" max="-2" attributes="0"/>
+                                                  </Group>
+                                                  <EmptySpace type="separate" max="32767" attributes="0"/>
+                                                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                                                      <Component id="jSeparator28" max="32767" attributes="0"/>
+                                                      <Component id="Add_food_description" min="-2" pref="381" max="-2" attributes="0"/>
+                                                      <Component id="jSeparator27" alignment="0" max="32767" attributes="0"/>
+                                                      <Component id="Add_food_price" alignment="0" min="-2" pref="381" max="-2" attributes="0"/>
+                                                  </Group>
+                                              </Group>
+                                              <Group type="102" alignment="0" attributes="0">
+                                                  <Component id="jLabel55" min="-2" pref="162" max="-2" attributes="0"/>
+                                                  <Group type="103" groupAlignment="0" attributes="0">
+                                                      <Group type="102" attributes="0">
+                                                          <EmptySpace type="separate" max="-2" attributes="0"/>
+                                                          <Component id="FoodWarningText" max="32767" attributes="0"/>
+                                                      </Group>
+                                                      <Group type="102" attributes="0">
+                                                          <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
+                                                          <Component id="jComboBoxFoodType" max="32767" attributes="0"/>
+                                                      </Group>
+                                                  </Group>
+                                              </Group>
+                                              <Group type="102" alignment="1" attributes="0">
+                                                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                                                  <Component id="jButton24" min="-2" max="-2" attributes="0"/>
+                                                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                                  <Component id="jButton21" min="-2" max="-2" attributes="0"/>
+                                                  <EmptySpace max="-2" attributes="0"/>
+                                                  <Component id="jButton22" min="-2" max="-2" attributes="0"/>
+                                                  <EmptySpace max="-2" attributes="0"/>
+                                                  <Component id="jButton23" min="-2" max="-2" attributes="0"/>
+                                              </Group>
+                                              <Group type="102" alignment="0" attributes="0">
                                                   <EmptySpace pref="297" max="-2" attributes="0"/>
                                                   <Component id="food_image_lable" min="-2" pref="121" max="-2" attributes="0"/>
-                                                  <EmptySpace min="-2" pref="150" max="-2" attributes="0"/>
+                                                  <EmptySpace min="-2" pref="138" max="-2" attributes="0"/>
                                               </Group>
                                           </Group>
                                           <Group type="103" groupAlignment="0" attributes="0">
                                               <Group type="102" attributes="0">
-                                                  <Component id="jScrollPane3" pref="432" max="32767" attributes="0"/>
-                                                  <EmptySpace min="-2" pref="5" max="-2" attributes="0"/>
-                                              </Group>
-                                              <Group type="102" alignment="1" attributes="0">
+                                                  <EmptySpace min="-2" pref="153" max="-2" attributes="0"/>
                                                   <Component id="jLabel58" min="-2" max="-2" attributes="0"/>
-                                                  <EmptySpace min="-2" pref="181" max="-2" attributes="0"/>
+                                              </Group>
+                                              <Group type="102" alignment="0" attributes="0">
+                                                  <EmptySpace max="-2" attributes="0"/>
+                                                  <Component id="jScrollPane3" min="-2" pref="400" max="-2" attributes="0"/>
                                               </Group>
                                           </Group>
+                                          <EmptySpace min="-2" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
                                 </DimensionLayout>
@@ -2316,12 +2312,6 @@
                                   <Group type="103" groupAlignment="0" attributes="0">
                                       <Group type="102" alignment="1" attributes="0">
                                           <Group type="103" groupAlignment="1" attributes="0">
-                                              <Group type="102" alignment="1" attributes="0">
-                                                  <EmptySpace min="-2" pref="50" max="-2" attributes="0"/>
-                                                  <Component id="jLabel58" min="-2" pref="32" max="-2" attributes="0"/>
-                                                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                                                  <Component id="jScrollPane3" min="-2" pref="422" max="-2" attributes="0"/>
-                                              </Group>
                                               <Group type="102" attributes="0">
                                                   <EmptySpace min="-2" pref="38" max="-2" attributes="0"/>
                                                   <Component id="food_image_lable" min="-2" pref="137" max="-2" attributes="0"/>
@@ -2375,6 +2365,12 @@
                                                       <Component id="jButton23" alignment="3" min="-2" pref="35" max="-2" attributes="0"/>
                                                       <Component id="jButton24" alignment="3" min="-2" pref="35" max="-2" attributes="0"/>
                                                   </Group>
+                                              </Group>
+                                              <Group type="102" attributes="0">
+                                                  <EmptySpace min="50" max="32767" attributes="0"/>
+                                                  <Component id="jLabel58" min="-2" pref="32" max="-2" attributes="0"/>
+                                                  <EmptySpace min="-2" pref="11" max="-2" attributes="0"/>
+                                                  <Component id="jScrollPane3" min="-2" pref="422" max="-2" attributes="0"/>
                                               </Group>
                                           </Group>
                                           <EmptySpace min="-2" pref="50" max="-2" attributes="0"/>
@@ -2848,7 +2844,7 @@
 
                                   <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
                                   <SubComponents>
-                                    <Component class="javax.swing.JTable" name="AddFoodTable1">
+                                    <Component class="javax.swing.JTable" name="ViewFoodTable">
                                       <Properties>
                                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                                           <Color blue="f0" green="f0" red="e7" type="rgb"/>
@@ -2913,8 +2909,8 @@
                                         </Property>
                                       </Properties>
                                       <Events>
-                                        <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="AddFoodTable1MouseClicked"/>
-                                        <EventHandler event="mouseEntered" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="AddFoodTable1MouseEntered"/>
+                                        <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="ViewFoodTableMouseClicked"/>
+                                        <EventHandler event="mouseEntered" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="ViewFoodTableMouseEntered"/>
                                       </Events>
                                       <AuxValues>
                                         <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="9"/>

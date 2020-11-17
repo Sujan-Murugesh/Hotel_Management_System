@@ -411,4 +411,14 @@ public class Food extends Main_Window {
         }
         }
     //======================================================================================
+        public void seeAvailabaleFoodJtble(){
+            try {
+            String qry = "select `id`,`type`,`name`,`price`,`description` from food";
+            ps = conn.prepareStatement(qry);
+            rs = ps.executeQuery();
+            AddFoodTable.setModel(DbUtils.resultSetToTableModel(rs));
+        } catch (SQLException | NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+        }
 }
