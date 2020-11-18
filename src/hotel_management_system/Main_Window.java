@@ -1,14 +1,17 @@
 package hotel_management_system;
 
 import java.awt.Color;
+import java.awt.Image;
 import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.table.JTableHeader;
+import net.proteanit.sql.DbUtils;
 
 /**
  *
@@ -148,52 +151,56 @@ public class Main_Window extends javax.swing.JFrame {
     public void searchingGuestByID() {
         guest.searchGuset_byID();
     }
-    
-    public void guestJTableClick(){
+
+    public void guestJTableClick() {
         guest.guestJTable_RowClicked();
     }
-    
-    public void GuestUpdatedata(){
+
+    public void GuestUpdatedata() {
         guest.UpdateGuest_information();
     }
 
     //==========================================================================================
-        //FOOD AND CATERING PART
+    //FOOD AND CATERING PART
     //==========================================================================================
-        static Food food = new Food();
-        
-        void insertFoodData(){
-            food.add_new_food();
-        }
-        
-        public void chooiceFoodImage(){
-            Food.chooiceFoodImg();
-        }
-        
-        public void foodTableClickedSet(){
-            food.food_table_row_clicked();
-        }
-        public void tableautoRetrivewFood(){
-            food.show_data_inJtablefood();
-        }
-        public void foodUpdate(){
-            food.update_food_items();
-        }
-        public void clearingFoodFormAdd(){
-            food.clearFoodForm();
-        }
-        public void deleteFood_Items(){
-            food.delete_food_items();
-        }
-        
-        public void seeAvailableFoodTableClicked(){
-            food.showAvailable_foods_table_clicked();
-        }
-        public void seefoodItemVieewTable(){
-            food.seeAvailabaleFoodJtble();
-        }
-    //==========================================================================================
+    static Food food = new Food();
 
+    void insertFoodData() {
+        food.add_new_food();
+    }
+
+    public void chooiceFoodImage() {
+        Food.chooiceFoodImg();
+    }
+
+    public void foodTableClickedSet() {
+        food.food_table_row_clicked();
+    }
+
+    public void tableautoRetrivewFood() {
+        food.show_data_inJtablefood();
+    }
+
+    public void foodUpdate() {
+        food.update_food_items();
+    }
+
+    public void clearingFoodFormAdd() {
+        food.clearFoodForm();
+    }
+
+    public void deleteFood_Items() {
+        food.delete_food_items();
+    }
+
+    public void seeAvailableFoodTableClicked() {
+        food.showAvailable_foods_table_clicked();
+    }
+
+    public void seefoodItemVieewTable() {
+        food.seeAvailabaleFoodJtble();
+    }
+    //==========================================================================================
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -302,12 +309,18 @@ public class Main_Window extends javax.swing.JFrame {
         jLabel50 = new javax.swing.JLabel();
         Catering_and_food = new javax.swing.JPanel();
         FoodManagementBTN = new javax.swing.JButton();
-        FoodOrderBTN1 = new javax.swing.JButton();
-        FoodOrderBTN2 = new javax.swing.JButton();
+        FoodPackageBTN = new javax.swing.JButton();
         jSeparator30 = new javax.swing.JSeparator();
+        FoodManagementBTN1 = new javax.swing.JButton();
         Catering_Base = new javax.swing.JPanel();
+        foodPackage = new javax.swing.JPanel();
+        jComboBoxfoodmenu = new javax.swing.JComboBox<>();
+        Foodmenulableout = new javax.swing.JLabel();
+        jComboBoxPackage = new javax.swing.JComboBox<>();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        GuestIdTable = new javax.swing.JTable();
+        jButton18 = new javax.swing.JButton();
         orderFood = new javax.swing.JPanel();
-        Catering_Base2 = new javax.swing.JPanel();
         Food_management = new javax.swing.JPanel();
         AddnewFoodBTN = new javax.swing.JButton();
         Available_foodBTN = new javax.swing.JButton();
@@ -350,7 +363,6 @@ public class Main_Window extends javax.swing.JFrame {
         jButton24 = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         AddFoodTable = new javax.swing.JTable();
-        FoodManagementBTN1 = new javax.swing.JButton();
         House_keeping = new javax.swing.JPanel();
         jLabel29 = new javax.swing.JLabel();
         Developers = new javax.swing.JPanel();
@@ -425,6 +437,8 @@ public class Main_Window extends javax.swing.JFrame {
         Billing_And_Report = new javax.swing.JPanel();
         jLabel24 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
+        BillGuestID = new javax.swing.JLabel();
+        BillPriceInput = new javax.swing.JLabel();
         time_lbl = new javax.swing.JLabel();
 
         food_price_out1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
@@ -1458,17 +1472,120 @@ public class Main_Window extends javax.swing.JFrame {
             }
         });
 
-        FoodOrderBTN1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        FoodOrderBTN1.setText("Packages");
+        FoodPackageBTN.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        FoodPackageBTN.setText("Packages");
+        FoodPackageBTN.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                FoodPackageBTNMouseClicked(evt);
+            }
+        });
+        FoodPackageBTN.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                FoodPackageBTNKeyPressed(evt);
+            }
+        });
 
-        FoodOrderBTN2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        FoodOrderBTN2.setText("Manu Card");
+        FoodManagementBTN1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        FoodManagementBTN1.setText("Food Order");
+        FoodManagementBTN1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                FoodManagementBTN1MouseClicked(evt);
+            }
+        });
 
         Catering_Base.setBackground(new java.awt.Color(255, 255, 255));
         Catering_Base.setMaximumSize(new java.awt.Dimension(1004, 657));
         Catering_Base.setMinimumSize(new java.awt.Dimension(1004, 657));
         Catering_Base.setPreferredSize(new java.awt.Dimension(1004, 657));
         Catering_Base.setLayout(new java.awt.CardLayout());
+
+        foodPackage.setBackground(new java.awt.Color(255, 255, 255));
+
+        jComboBoxfoodmenu.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jComboBoxfoodmenu.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select The Food Menu", "Menu - 01", "Menu - 02", "Menu - 03", "Menu - 04" }));
+        jComboBoxfoodmenu.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jComboBoxfoodmenuMouseClicked(evt);
+            }
+        });
+
+        jComboBoxPackage.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jComboBoxPackage.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select The Package", "Menu - 01", "Menu - 02", "Menu - 03", "Menu - 04" }));
+        jComboBoxPackage.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jComboBoxPackageMouseClicked(evt);
+            }
+        });
+
+        GuestIdTable.setAutoCreateRowSorter(true);
+        GuestIdTable.setBackground(new java.awt.Color(231, 240, 240));
+        GuestIdTable.setBorder(new javax.swing.border.MatteBorder(null));
+        GuestIdTable.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        GuestIdTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "ID", "NAme"
+            }
+        ));
+        GuestIdTable.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        GuestIdTable.setEditingColumn(1);
+        GuestIdTable.setEditingRow(1);
+        GuestIdTable.setFillsViewportHeight(true);
+        GuestIdTable.setGridColor(new java.awt.Color(51, 51, 51));
+        GuestIdTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                GuestIdTableMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                GuestIdTableMouseEntered(evt);
+            }
+        });
+        jScrollPane5.setViewportView(GuestIdTable);
+
+        jButton18.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton18.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/confirmpackage.png"))); // NOI18N
+        jButton18.setText("Confirm Package");
+        jButton18.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton18MouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout foodPackageLayout = new javax.swing.GroupLayout(foodPackage);
+        foodPackage.setLayout(foodPackageLayout);
+        foodPackageLayout.setHorizontalGroup(
+            foodPackageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(foodPackageLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(foodPackageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jComboBoxfoodmenu, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jComboBoxPackage, 0, 270, Short.MAX_VALUE)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(jButton18, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(53, 53, 53)
+                .addComponent(Foodmenulableout, javax.swing.GroupLayout.PREFERRED_SIZE, 497, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(174, Short.MAX_VALUE))
+        );
+        foodPackageLayout.setVerticalGroup(
+            foodPackageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(foodPackageLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(foodPackageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(foodPackageLayout.createSequentialGroup()
+                        .addComponent(jComboBoxfoodmenu, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jComboBoxPackage, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton18, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 485, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(Foodmenulableout, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+
+        Catering_Base.add(foodPackage, "card2");
 
         orderFood.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -1480,25 +1597,10 @@ public class Main_Window extends javax.swing.JFrame {
         );
         orderFoodLayout.setVerticalGroup(
             orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 609, Short.MAX_VALUE)
+            .addGap(0, 657, Short.MAX_VALUE)
         );
 
         Catering_Base.add(orderFood, "card2");
-
-        Catering_Base2.setBackground(new java.awt.Color(255, 255, 255));
-
-        javax.swing.GroupLayout Catering_Base2Layout = new javax.swing.GroupLayout(Catering_Base2);
-        Catering_Base2.setLayout(Catering_Base2Layout);
-        Catering_Base2Layout.setHorizontalGroup(
-            Catering_Base2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1004, Short.MAX_VALUE)
-        );
-        Catering_Base2Layout.setVerticalGroup(
-            Catering_Base2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-
-        Catering_Base.add(Catering_Base2, "card2");
 
         Food_management.setBackground(new java.awt.Color(255, 255, 255));
         Food_management.setMaximumSize(new java.awt.Dimension(902, 546));
@@ -1651,16 +1753,16 @@ public class Main_Window extends javax.swing.JFrame {
                             .addComponent(jLabel63, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(food_type_out, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 497, Short.MAX_VALUE))
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 486, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
         addfoodbase.add(viewfood, "card2");
 
         addfood1.setBackground(new java.awt.Color(255, 255, 255));
-        addfood1.setMaximumSize(new java.awt.Dimension(932, 546));
-        addfood1.setMinimumSize(new java.awt.Dimension(932, 546));
-        addfood1.setPreferredSize(new java.awt.Dimension(902, 546));
+        addfood1.setMaximumSize(new java.awt.Dimension(1017, 546));
+        addfood1.setMinimumSize(new java.awt.Dimension(1017, 546));
+        addfood1.setPreferredSize(new java.awt.Dimension(1017, 546));
 
         jLabel53.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jLabel53.setText("Food Name       ");
@@ -1810,6 +1912,11 @@ public class Main_Window extends javax.swing.JFrame {
             }
         });
         jScrollPane3.setViewportView(AddFoodTable);
+        if (AddFoodTable.getColumnModel().getColumnCount() > 0) {
+            AddFoodTable.getColumnModel().getColumn(2).setHeaderValue("Name");
+            AddFoodTable.getColumnModel().getColumn(3).setHeaderValue("PRICE");
+            AddFoodTable.getColumnModel().getColumn(4).setHeaderValue("Description");
+        }
 
         javax.swing.GroupLayout addfood1Layout = new javax.swing.GroupLayout(addfood1);
         addfood1.setLayout(addfood1Layout);
@@ -1918,7 +2025,7 @@ public class Main_Window extends javax.swing.JFrame {
                         .addComponent(jLabel58, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 474, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(0, 17, Short.MAX_VALUE))
+                .addGap(0, 6, Short.MAX_VALUE))
         );
 
         addfoodbase.add(addfood1, "card2");
@@ -1935,7 +2042,7 @@ public class Main_Window extends javax.swing.JFrame {
                         .addGap(29, 29, 29)
                         .addComponent(Available_foodBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(addfoodbase, javax.swing.GroupLayout.PREFERRED_SIZE, 1026, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
             .addComponent(jSeparator25, javax.swing.GroupLayout.Alignment.TRAILING)
         );
         Food_managementLayout.setVerticalGroup(
@@ -1952,14 +2059,6 @@ public class Main_Window extends javax.swing.JFrame {
 
         Catering_Base.add(Food_management, "card2");
 
-        FoodManagementBTN1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        FoodManagementBTN1.setText("Food Order");
-        FoodManagementBTN1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                FoodManagementBTN1MouseClicked(evt);
-            }
-        });
-
         javax.swing.GroupLayout Catering_and_foodLayout = new javax.swing.GroupLayout(Catering_and_food);
         Catering_and_food.setLayout(Catering_and_foodLayout);
         Catering_and_foodLayout.setHorizontalGroup(
@@ -1970,10 +2069,8 @@ public class Main_Window extends javax.swing.JFrame {
                 .addGap(26, 26, 26)
                 .addComponent(FoodManagementBTN1, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(26, 26, 26)
-                .addComponent(FoodOrderBTN1, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(FoodOrderBTN2, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(FoodPackageBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(Catering_and_foodLayout.createSequentialGroup()
                 .addGroup(Catering_and_foodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addComponent(Catering_Base, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1986,8 +2083,7 @@ public class Main_Window extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(Catering_and_foodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(FoodManagementBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(FoodOrderBTN1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(FoodOrderBTN2, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(FoodPackageBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(FoodManagementBTN1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator30, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2782,7 +2878,7 @@ public class Main_Window extends javax.swing.JFrame {
         Billing_And_Report.setBackground(new java.awt.Color(255, 255, 255));
 
         jLabel24.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
-        jLabel24.setText("Billing");
+        jLabel24.setText("Guest ID :");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -2795,27 +2891,42 @@ public class Main_Window extends javax.swing.JFrame {
             .addGap(0, 100, Short.MAX_VALUE)
         );
 
+        BillGuestID.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
+
+        BillPriceInput.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
+
         javax.swing.GroupLayout Billing_And_ReportLayout = new javax.swing.GroupLayout(Billing_And_Report);
         Billing_And_Report.setLayout(Billing_And_ReportLayout);
         Billing_And_ReportLayout.setHorizontalGroup(
             Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(Billing_And_ReportLayout.createSequentialGroup()
-                .addGap(404, 404, 404)
+                .addContainerGap()
                 .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(473, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, Billing_And_ReportLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(296, 296, 296))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(Billing_And_ReportLayout.createSequentialGroup()
+                        .addComponent(BillPriceInput, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(Billing_And_ReportLayout.createSequentialGroup()
+                        .addComponent(BillGuestID, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 315, Short.MAX_VALUE)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(296, 296, 296))))
         );
         Billing_And_ReportLayout.setVerticalGroup(
             Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(Billing_And_ReportLayout.createSequentialGroup()
                 .addGap(26, 26, 26)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(112, 112, 112)
-                .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(385, Short.MAX_VALUE))
+                .addGroup(Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(Billing_And_ReportLayout.createSequentialGroup()
+                        .addGap(40, 40, 40)
+                        .addGroup(Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(BillGuestID, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(7, 7, 7)
+                .addComponent(BillPriceInput, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(504, Short.MAX_VALUE))
         );
 
         Dynamic_Panel.add(Billing_And_Report, "card2");
@@ -3276,7 +3387,7 @@ public class Main_Window extends javax.swing.JFrame {
         profileBTN.setForeground(Color.RED);
         changepwdBTN.setForeground(new Color(240, 240, 240));
         createuserBTN.setForeground(new Color(240, 240, 240));
-        
+
         txt_dynamic_title_bar.setText("User Profile...");
         account_base.removeAll();
         account_base.removeAll();
@@ -3307,7 +3418,7 @@ public class Main_Window extends javax.swing.JFrame {
     }//GEN-LAST:event_profile_warning_text1MouseClicked
 
     private void userNamelblMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_userNamelblMouseClicked
-        
+
         txt_dynamic_title_bar.setText("User Account and Security");
         Dynamic_Panel.removeAll();
         Dynamic_Panel.removeAll();
@@ -3408,7 +3519,7 @@ public class Main_Window extends javax.swing.JFrame {
         reservationBTN.setForeground(Color.RED);
         GuestStaticsBTN.setForeground(new Color(240, 240, 240));
         guestRegistrationBTN.setForeground(new Color(240, 240, 240));
-        
+
         frontDeskBase.removeAll();
         frontDeskBase.removeAll();
         frontDeskBase.repaint();
@@ -3423,7 +3534,7 @@ public class Main_Window extends javax.swing.JFrame {
         GuestStaticsBTN.setForeground(Color.RED);
         guestRegistrationBTN.setForeground(new Color(240, 240, 240));
         reservationBTN.setForeground(Color.RED);
-        
+
         frontDeskBase.removeAll();
         frontDeskBase.removeAll();
         frontDeskBase.repaint();
@@ -3535,10 +3646,9 @@ public class Main_Window extends javax.swing.JFrame {
 
     private void guest_idKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_guest_idKeyPressed
         char c = evt.getKeyChar();
-        if( Character.isDigit(c) || Character.isLetter(c) || Character.isISOControl(c)){
+        if (Character.isDigit(c) || Character.isLetter(c) || Character.isISOControl(c)) {
             guest_id.setEditable(true);
-        }
-        else{
+        } else {
             guest_id.setEditable(false);
             guest_warning_text.setText("GuestID is auto generated GNR10000");
         }
@@ -3546,10 +3656,9 @@ public class Main_Window extends javax.swing.JFrame {
             if (guest_id.getText().isEmpty()) {
                 guest_id.setBackground(new Color(197, 232, 240));
                 guest_warning_text.setText("Please Clear button to reset the ID");
-            }else if(guest_id.getText().length()!=8){
+            } else if (guest_id.getText().length() != 8) {
                 guest_warning_text.setText("Invalid Guest ID");
-            }
-            else {
+            } else {
                 searchingGuestByID();
                 guest_id.setBackground(new Color(255, 255, 255));
                 guest_fullname.setBackground(new Color(197, 232, 240));
@@ -3724,13 +3833,13 @@ public class Main_Window extends javax.swing.JFrame {
     }//GEN-LAST:event_jTableGuestMouseEntered
 
     private void Add_food_nameKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_Add_food_nameKeyPressed
-       //foodname
-       if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+        //foodname
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             if (Add_food_name.getText().isEmpty()) {
                 Add_food_name.requestFocus();
                 Add_food_name.setBackground(new Color(197, 232, 240));
                 FoodWarningText.setText("Please fillout the food name");
-            }else {
+            } else {
                 Add_food_name.setBackground(new Color(255, 255, 255));
                 Add_food_price.setBackground(new Color(197, 232, 240));
                 Add_food_price.requestFocus();
@@ -3741,21 +3850,20 @@ public class Main_Window extends javax.swing.JFrame {
     }//GEN-LAST:event_Add_food_nameKeyPressed
 
     private void Add_food_priceKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_Add_food_priceKeyPressed
-      char c = evt.getKeyChar();
-      if(evt.getKeyChar() >= '0' && evt.getKeyChar() <= '9'  || Character.isISOControl(c)){
-          Add_food_price.setEditable(true);
-          FoodWarningText.setText("");
-      }
-      else{
-          Add_food_price.setEditable(false);
-          FoodWarningText.setText(" Digits Only Allowed like 100 or 100.00");
-      }
-      if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+        char c = evt.getKeyChar();
+        if (evt.getKeyChar() >= '0' && evt.getKeyChar() <= '9' || Character.isISOControl(c)) {
+            Add_food_price.setEditable(true);
+            FoodWarningText.setText("");
+        } else {
+            Add_food_price.setEditable(false);
+            FoodWarningText.setText(" Digits Only Allowed like 100 or 100.00");
+        }
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             if (Add_food_price.getText().isEmpty()) {
                 Add_food_price.requestFocus();
                 Add_food_price.setBackground(new Color(197, 232, 240));
                 FoodWarningText.setText("Please fillout the food Price");
-            }else {
+            } else {
                 Add_food_description.setBackground(new Color(255, 255, 255));
                 insertFoodData();
                 FoodWarningText.setText("");
@@ -3779,7 +3887,7 @@ public class Main_Window extends javax.swing.JFrame {
         FoodManagementBTN.setForeground(Color.RED);
         //guestRegistrationBTN.setForeground(new Color(240, 240, 240));
         //reservationBTN.setForeground(Color.RED);
-        
+
         Catering_Base.removeAll();
         Catering_Base.removeAll();
         Catering_Base.repaint();
@@ -3803,11 +3911,11 @@ public class Main_Window extends javax.swing.JFrame {
     }//GEN-LAST:event_AddFoodTableMouseEntered
 
     private void jButton21MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton21MouseClicked
-       foodUpdate();
+        foodUpdate();
     }//GEN-LAST:event_jButton21MouseClicked
 
     private void jButton23MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton23MouseClicked
-       clearingFoodFormAdd();
+        clearingFoodFormAdd();
     }//GEN-LAST:event_jButton23MouseClicked
 
     private void jButton22MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton22MouseClicked
@@ -3815,15 +3923,14 @@ public class Main_Window extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton22MouseClicked
 
     private void jComboBoxFoodTypeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxFoodTypeActionPerformed
-       if(jComboBoxFoodType.getSelectedIndex()!=0){
-           Add_food_name.requestFocus();
-           Add_food_name.setBackground(new Color(197, 232, 240));
-           FoodWarningText.setText("");
-       }
-       else{
-           FoodWarningText.setText("Please Select food menu");
-           jComboBoxFoodType.setBackground(new Color(197, 232, 240));
-       }
+        if (jComboBoxFoodType.getSelectedIndex() != 0) {
+            Add_food_name.requestFocus();
+            Add_food_name.setBackground(new Color(197, 232, 240));
+            FoodWarningText.setText("");
+        } else {
+            FoodWarningText.setText("Please Select food menu");
+            jComboBoxFoodType.setBackground(new Color(197, 232, 240));
+        }
     }//GEN-LAST:event_jComboBoxFoodTypeActionPerformed
 
     private void ViewFoodTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ViewFoodTableMouseClicked
@@ -3831,7 +3938,7 @@ public class Main_Window extends javax.swing.JFrame {
     }//GEN-LAST:event_ViewFoodTableMouseClicked
 
     private void ViewFoodTableMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ViewFoodTableMouseEntered
-       seefoodItemVieewTable();
+        seefoodItemVieewTable();
     }//GEN-LAST:event_ViewFoodTableMouseEntered
 
     private void food_image_lable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_food_image_lable1MouseClicked
@@ -3839,8 +3946,8 @@ public class Main_Window extends javax.swing.JFrame {
     }//GEN-LAST:event_food_image_lable1MouseClicked
 
     private void Available_foodBTNMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Available_foodBTNMouseClicked
-       Available_foodBTN.setForeground(Color.RED);
-       AddnewFoodBTN.setForeground(Color.white);
+        Available_foodBTN.setForeground(Color.RED);
+        AddnewFoodBTN.setForeground(Color.white);
         //reservationBTN.setForeground(Color.RED);
         addfoodbase.removeAll();
         addfoodbase.removeAll();
@@ -3872,6 +3979,144 @@ public class Main_Window extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_FoodManagementBTN1MouseClicked
 
+    private void jComboBoxfoodmenuMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jComboBoxfoodmenuMouseClicked
+        if (jComboBoxfoodmenu.getSelectedIndex() == 0) {
+            jComboBoxfoodmenu.requestFocus();
+            JOptionPane.showMessageDialog(null, "Plese Select a Food menu");
+        } else {
+            int id = jComboBoxfoodmenu.getSelectedIndex();
+            try {
+                String qry = "select * from `menu` where `id` = '" + id + "' ";
+                ps = conn.prepareStatement(qry);
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    //menuimg
+                    byte[] img = rs.getBytes("menuimg");
+                    ImageIcon image = new ImageIcon(img);
+                    Image im = image.getImage();
+                    Image myImg = im.getScaledInstance(Foodmenulableout.getWidth(), Foodmenulableout.getHeight(), Image.SCALE_SMOOTH);
+                    ImageIcon newImage = new ImageIcon(myImg);
+                    Foodmenulableout.setIcon(newImage);
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_jComboBoxfoodmenuMouseClicked
+
+    private void jComboBoxPackageMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jComboBoxPackageMouseClicked
+        if (jComboBoxPackage.getSelectedIndex() == 0) {
+            jComboBoxPackage.requestFocus();
+            JOptionPane.showMessageDialog(null, "Plese Select a Food menu");
+        } else {
+            int id = jComboBoxPackage.getSelectedIndex();
+            try {
+                String qry = "select * from `package` where `id` = '" + id + "' ";
+                ps = conn.prepareStatement(qry);
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    //menuimg
+                    byte[] img = rs.getBytes("packageimg");
+                    ImageIcon image = new ImageIcon(img);
+                    Image im = image.getImage();
+                    Image myImg = im.getScaledInstance(Foodmenulableout.getWidth(), Foodmenulableout.getHeight(), Image.SCALE_SMOOTH);
+                    ImageIcon newImage = new ImageIcon(myImg);
+                    Foodmenulableout.setIcon(newImage);
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_jComboBoxPackageMouseClicked
+
+    private void FoodPackageBTNKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_FoodPackageBTNKeyPressed
+
+    }//GEN-LAST:event_FoodPackageBTNKeyPressed
+
+    private void FoodPackageBTNMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_FoodPackageBTNMouseClicked
+        FoodPackageBTN.setForeground(Color.RED);
+        Available_foodBTN.setForeground(Color.white);
+        //guestRegistrationBTN.setForeground(new Color(240, 240, 240));
+        //reservationBTN.setForeground(Color.RED);
+        Catering_Base.removeAll();
+        Catering_Base.removeAll();
+        Catering_Base.repaint();
+        Catering_Base.revalidate();
+        Catering_Base.add(foodPackage);
+        Catering_Base.repaint();
+        Catering_Base.revalidate();
+        txt_dynamic_title_bar.setText("Food & Catering - Packages");
+    }//GEN-LAST:event_FoodPackageBTNMouseClicked
+
+    private void GuestIdTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_GuestIdTableMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_GuestIdTableMouseClicked
+
+    private void GuestIdTableMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_GuestIdTableMouseEntered
+        try {
+            String qry = "select `guest_id`,`guest_name` from guest order by guest_id desc";
+            ps = conn.prepareStatement(qry);
+            rs = ps.executeQuery();
+            GuestIdTable.setModel(DbUtils.resultSetToTableModel(rs));
+        } catch (SQLException | NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
+    }//GEN-LAST:event_GuestIdTableMouseEntered
+
+    private void jButton18MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton18MouseClicked
+        if (jComboBoxPackage.getSelectedIndex() == 0) {
+            jComboBoxPackage.requestFocus();
+            JOptionPane.showMessageDialog(null, "Please select the Package");
+        } else if (ViewFoodTable.getSelectedRowCount()>=0){
+            try {
+                int index = GuestIdTable.getSelectedRow();  //i changed the editing colume in jetable
+                String Food_ID = (GuestIdTable.getModel().getValueAt(index, 0).toString());
+                BillGuestID.setText(Food_ID);
+
+                String paId = null ;
+                String pakageId = jComboBoxPackage.getSelectedItem().toString();
+                switch (pakageId) {
+                    case "Menu - 01":
+                        paId = "1";
+                        break;
+                    case "Menu - 02":
+                        paId = "2";
+                        break;
+                    case "Menu - 03":
+                        paId = "3";
+                        break;
+                    case "Menu - 04":
+                        paId = "4";
+                        break;
+                    default:
+                        break;
+                }
+                String qry = "select `price` from `package` where `id` = '" + paId + "' ";
+                ps = conn.prepareStatement(qry);
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    double pPrice = rs.getDouble("price");
+                    String outPrice = String.valueOf(pPrice);
+                    BillPriceInput.setText(outPrice);
+                    Dynamic_Panel.removeAll();
+                    Dynamic_Panel.removeAll();
+                    Dynamic_Panel.repaint();
+                    Dynamic_Panel.revalidate();
+                    Dynamic_Panel.add(Billing_And_Report);
+                    Dynamic_Panel.repaint();
+                    Dynamic_Panel.revalidate();
+                    txt_dynamic_title_bar.setText("Billing and Report Generating...");
+
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null,"please select guest id from table "+e.getMessage());
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Please select the guest Id");
+        }
+
+    }//GEN-LAST:event_jButton18MouseClicked
+
     public static void main(String args[]) {
 
         /* Create and display the form */
@@ -3894,10 +4139,11 @@ public class Main_Window extends javax.swing.JFrame {
     private javax.swing.JLabel Address3;
     private javax.swing.JLabel Address4;
     private javax.swing.JButton Available_foodBTN;
+    private javax.swing.JLabel BillGuestID;
+    private javax.swing.JLabel BillPriceInput;
     public static javax.swing.JPanel Billing_And_Report;
     public static javax.swing.JPanel Camera_panel1;
     public static javax.swing.JPanel Catering_Base;
-    public static javax.swing.JPanel Catering_Base2;
     public static javax.swing.JPanel Catering_and_food;
     public static javax.swing.JLabel DateLbl;
     public static javax.swing.JPanel Developers;
@@ -3905,11 +4151,12 @@ public class Main_Window extends javax.swing.JFrame {
     private javax.swing.JPanel Dynamic_title_bar;
     private javax.swing.JButton FoodManagementBTN;
     private javax.swing.JButton FoodManagementBTN1;
-    private javax.swing.JButton FoodOrderBTN1;
-    private javax.swing.JButton FoodOrderBTN2;
+    private javax.swing.JButton FoodPackageBTN;
     public static javax.swing.JLabel FoodWarningText;
     public static javax.swing.JPanel Food_management;
+    public static javax.swing.JLabel Foodmenulableout;
     public static javax.swing.JPanel Frontdest;
+    public static javax.swing.JTable GuestIdTable;
     private javax.swing.JPanel GuestRegistartion;
     private javax.swing.JButton GuestStaticsBTN;
     private javax.swing.JPanel Guest_Statictics;
@@ -3938,6 +4185,7 @@ public class Main_Window extends javax.swing.JFrame {
     public static javax.swing.JCheckBox comEditCh;
     public javax.swing.JPanel create_newuser_form;
     private javax.swing.JButton createuserBTN;
+    public static javax.swing.JPanel foodPackage;
     public static javax.swing.JLabel food_description_out;
     public static javax.swing.JLabel food_image_lable;
     public static javax.swing.JLabel food_image_lable1;
@@ -3965,6 +4213,7 @@ public class Main_Window extends javax.swing.JFrame {
     private javax.swing.JButton jButton15;
     private javax.swing.JButton jButton16;
     private javax.swing.JButton jButton17;
+    private javax.swing.JButton jButton18;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton21;
     private javax.swing.JButton jButton22;
@@ -3983,6 +4232,8 @@ public class Main_Window extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JComboBox<String> jComboBox2;
     public static javax.swing.JComboBox<String> jComboBoxFoodType;
+    public static javax.swing.JComboBox<String> jComboBoxPackage;
+    public static javax.swing.JComboBox<String> jComboBoxfoodmenu;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -4052,6 +4303,7 @@ public class Main_Window extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JSeparator jSeparator1;
     public javax.swing.JSeparator jSeparator10;
     public javax.swing.JSeparator jSeparator11;
