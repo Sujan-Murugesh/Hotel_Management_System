@@ -105,6 +105,7 @@ public class loginform extends javax.swing.JFrame {
                 
                 if(rs.next()){
                     Main_Window m=new Main_Window();
+                  //  m.setSize(400,200);
                     m.setVisible(true);
                     m.pack();
                     m.setLocationRelativeTo(null);
@@ -244,11 +245,11 @@ public class loginform extends javax.swing.JFrame {
         usename.setText(" Username");
         usename.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
 
-        user_pwd.setBackground(new java.awt.Color(51, 51, 51));
+        user_pwd.setBackground(new java.awt.Color(0, 0, 0));
         user_pwd.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         user_pwd.setForeground(new java.awt.Color(255, 255, 255));
         user_pwd.setText("typepassword");
-        user_pwd.setBorder(null);
+        user_pwd.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 1)));
         user_pwd.setMaximumSize(new java.awt.Dimension(165, 22));
         user_pwd.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -261,11 +262,11 @@ public class loginform extends javax.swing.JFrame {
             }
         });
 
-        text_username.setBackground(new java.awt.Color(51, 51, 51));
+        text_username.setBackground(new java.awt.Color(0, 0, 0));
         text_username.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         text_username.setForeground(new java.awt.Color(255, 255, 255));
         text_username.setText("username");
-        text_username.setBorder(null);
+        text_username.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 1)));
         text_username.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 text_usernameFocusGained(evt);

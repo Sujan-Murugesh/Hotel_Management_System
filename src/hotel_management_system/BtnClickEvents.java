@@ -136,13 +136,12 @@ class BtnClickEvents extends Main_Window{
             Dynamic_Panel.removeAll();
             Dynamic_Panel.repaint();
             Dynamic_Panel.revalidate();
-            Dynamic_Panel.add(Room_and_hallbooking);
+            Dynamic_Panel.add(RoomandHall);
             Dynamic_Panel.repaint();
             Dynamic_Panel.revalidate();
             txt_dynamic_title_bar.setText("Room and Hall Booking Management...");
         
             setColor(btn_room_and_hall);
-           
             resetColor(btn_account_setting);
             resetColor(btn_bill_and_report);
             resetColor(btn_inventory);

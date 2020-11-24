@@ -406,9 +406,9 @@ public class Food extends Main_Window {
                 //close............................ 
             }
 
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e.getMessage());
-        }
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(null, e.getMessage());
+            }
         }
     //======================================================================================
         public void seeAvailabaleFoodJtble(){

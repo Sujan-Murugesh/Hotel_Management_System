@@ -91,7 +91,6 @@ public class Guest extends Main_Window {
             guest_address.requestFocus();
         } else {
             try {
-
                 ps = conn.prepareStatement("INSERT INTO `guest`(`guest_id`,`guest_name`,`gidentity`,`gtel`,`gemail`,`gvisit`,`gaddress`,`gimage`)values(?,?,?,?,?,?,?,?)");
                 ps.setString(1, guest_id.getText());
                 ps.setString(2, guest_fullname.getText());
@@ -184,7 +183,7 @@ public class Guest extends Main_Window {
                 } else {
                     guest_warning_text.setText("Please check the guest ID!");
                 }
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 JOptionPane.showMessageDialog(null, e.getMessage());
             }
         }
@@ -229,7 +228,7 @@ public class Guest extends Main_Window {
                 //close............................ 
             }
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }
