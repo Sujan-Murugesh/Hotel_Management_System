@@ -213,13 +213,13 @@ public class loginform extends javax.swing.JFrame {
         title1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         title1.setForeground(new java.awt.Color(255, 255, 255));
         title1.setText("Hotel Management System");
-        log.add(title1, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 20, -1, 20));
-        log.add(jSeparator3, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 90, 660, 10));
+        log.add(title1, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 20, -1, 40));
+        log.add(jSeparator3, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 100, 660, 10));
 
         title2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         title2.setForeground(new java.awt.Color(255, 255, 255));
         title2.setText("Gamage Nest and Rest");
-        log.add(title2, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 50, -1, 20));
+        log.add(title2, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 60, -1, 30));
 
         logStatusLbl.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         logStatusLbl.setForeground(new java.awt.Color(255, 0, 0));
@@ -337,9 +337,9 @@ public class loginform extends javax.swing.JFrame {
                         .addGap(150, 150, 150)
                         .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 320, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(160, 160, 160)
+                        .addGap(151, 151, 151)
                         .addComponent(show_pwd)
-                        .addGap(9, 9, 9)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(title))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(140, 140, 140)

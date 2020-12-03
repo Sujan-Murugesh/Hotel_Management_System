@@ -1,15 +1,28 @@
 package hotel_management_system;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.event.KeyEvent;
+import java.awt.print.PageFormat;
+import java.awt.print.Paper;
+import java.awt.print.Printable;
+import static java.awt.print.Printable.NO_SUCH_PAGE;
+import static java.awt.print.Printable.PAGE_EXISTS;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import net.proteanit.sql.DbUtils;
 
@@ -26,16 +39,31 @@ public class Main_Window extends javax.swing.JFrame {
     ResultSet rs;
     int profilePicStatus = 0;
 
+    private int xMouse;
+    private int yMouse;
+
+    ArrayList<String> foododeritemName = new ArrayList<>();
+    ArrayList<String> foododerquantity = new ArrayList<>();
+    ArrayList<String> foododerItemPrice = new ArrayList<>();
+
     public Main_Window() {
         initComponents();
         setDateandTime();
         conn = Db_connection.connect();
+//------------------------------------------------
         autoId();
         roomo_autoId();
         reservation_autoID();
-        Camera_panel1.setVisible(false);
-        tableHead();
+        reservationBill_autoID();
+        FOOD_ORDERautoID();
 
+//------------------------------------------------
+        Camera_panel1.setVisible(false);
+        jPanelFood_order_confirm.setVisible(false);
+        jToolBar1.setVisible(false);
+        //radioBTNgrp();
+        fillFood_order_guest_combo();
+        fillFood_Resrvation_id_combo();
     }
     //=========================================================================================
     static TableDesign header = new TableDesign();
@@ -104,10 +132,11 @@ public class Main_Window extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }
+
     //===========================================================================================
     //AUTO ID FOR RESERVATIONS ROOMS
     //==========================================================================================
-      private void reservation_autoID(){
+    private void reservation_autoID() {
         try {
             String sql = "SELECT * FROM `reservation` order by reservation_id desc limit 1";
             ps = conn.prepareStatement(sql);
@@ -129,8 +158,57 @@ public class Main_Window extends javax.swing.JFrame {
         } catch (SQLException | NumberFormatException e) {
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
-    }  
-    
+    }
+
+    private void reservationBill_autoID() {
+        try {
+            String sql = "SELECT * FROM `reservationbill` order by res_bill_id desc limit 1";
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                String rnno = rs.getString("res_bill_id");
+                int co = rnno.length();
+                String txt = rnno.substring(0, 3);
+                String num = rnno.substring(3, co);
+                int m = Integer.parseInt(num);
+                m++;
+                String snum = Integer.toString(m);
+                String ftext = txt + snum;
+                res_bill_id.setText(ftext);
+            } else {
+                res_bill_id.setText("GBR10000");
+            }
+
+        } catch (SQLException | NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
+    }
+
+    //======FOOD ORDER AUTO ID
+    private void FOOD_ORDERautoID() {
+        try {
+            String sql = "SELECT * FROM `food_oder` order by oder_id desc limit 1";
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                String rnno = rs.getString("oder_id");
+                int co = rnno.length();
+                String txt = rnno.substring(0, 3);
+                String num = rnno.substring(3, co);
+                int m = Integer.parseInt(num);
+                m++;
+                String snum = Integer.toString(m);
+                String ftext = txt + snum;
+                food_order_id.setText(ftext);
+            } else {
+                food_order_id.setText("ODR10000");
+            }
+
+        } catch (SQLException | NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
+    }
+
     //===========================================================================================
     //DESIGN LOOK PERFECT STATIC PANEL DESIGN
     //==========================================================================================
@@ -276,38 +354,123 @@ public class Main_Window extends javax.swing.JFrame {
     public void updateRooms() {
         room.update_Rooms();
     }
-    
-    public void deletingRooms(){
+
+    public void deletingRooms() {
         room.delete_rooms();
     }
     //==========================================================================================
-        //RESERVATIONS
+    //RESERVATIONS
     //-----------------------------------------------------------------------------------------
     static Reservation reserVa = new Reservation();
-    public void confirm_Reservations(){
+
+    public void confirm_Reservations() {
         reserVa.confirming_reservation();
     }
-    
-    public void clearing_Reservation_feilds(){
+
+    public void clearing_Reservation_feilds() {
         reserVa.clear_reservation_form();
     }
+
+    public void deleteReservationing() {
+        reserVa.delete_the_reservation();
+    }
     //==========================================================================================
-        //Bill genetation
+    //Bill genetation
     //==========================================================================================
     static Bill bill = new Bill();
-    public void getReservationTotal(){
+
+    public void getReservationTotal() {
         bill.reservation_calculate_total();
     }
+
+    public void setResBillDisplay() {
+        bill.create_the_reservation_bill();
+    }
+
+    public void insert_ResBill() {
+        bill.insert_reservation_bill_data();
+        reservationBill_autoID();
+    }
+
+    public void clearResrFormFeilds() {
+        bill.clearing_reservation_form_feilds();
+        reservationBill_autoID();
+    }
+
+    public void display_foodOderBilling() {
+        bill.displying_food_order_bill();
+    }
+    //==========================================================================================
+    //FOOD ORDERING SECTION
+    static FoodOder foodOder = new FoodOder();
+
+//    private void radioBTNgrp() {
+//        ButtonGroup rb = new ButtonGroup();
+//        rb.add(jRadioButton1);
+//        rb.add(jRadioButton2);
+//        rb.add(jRadioButton3);
+//        rb.add(jRadioButton4);
+//        rb.add(jRadioButton5);
+//    }
+    public void set_oder_Sub_total() {
+        foodOder.setSub_total_price();
+    }
+
+    private void fillFood_order_guest_combo() {
+        try {
+            String sql = "select * from guest order by guest_id desc";
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String od_guest = rs.getString("guest_id");
+                Foodorder_guest_id_combo.addItem(od_guest);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("" + e.getMessage());
+        }
+    }
+
+    //======================
+    private void fillFood_Resrvation_id_combo() {
+        try {
+            String sql = "select * from reservation order by reservation_id desc";
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String od_res = rs.getString("reservation_id");
+                Foodorder_reservation_id_com.addItem(od_res);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("" + e.getMessage());
+        }
+    }
+
+    //===================
+    //FOOD ORDER INSERTINFG ...
+    public void insert_card_to_db() {
+        foodOder.insert_food_order_items();
+    }
+
+    public void delete_food_oder_temp() {
+        foodOder.canceling_oder();
+    }
+
     //==========================================================================================
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         food_price_out1 = new javax.swing.JLabel();
+        buttonGroup1Food_order = new javax.swing.ButtonGroup();
         bg = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         DateLbl = new javax.swing.JLabel();
+        time_lbl = new javax.swing.JLabel();
         side_Panel = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
         btn_bill_and_report = new javax.swing.JPanel();
@@ -341,8 +504,105 @@ public class Main_Window extends javax.swing.JFrame {
         txt_dynamic_title_bar = new javax.swing.JLabel();
         lbl_userType = new javax.swing.JLabel();
         Dynamic_Panel = new javax.swing.JPanel();
-        Inventory = new javax.swing.JPanel();
-        jLabel25 = new javax.swing.JLabel();
+        Billing_And_Report = new javax.swing.JPanel();
+        jButton27 = new javax.swing.JButton();
+        jButton29 = new javax.swing.JButton();
+        jButton30 = new javax.swing.JButton();
+        jButton31 = new javax.swing.JButton();
+        jSeparator36 = new javax.swing.JSeparator();
+        bill_base = new javax.swing.JPanel();
+        Food_order_bill = new javax.swing.JPanel();
+        jScrollPane12 = new javax.swing.JScrollPane();
+        bill_display1 = new javax.swing.JTextArea();
+        jSeparator58 = new javax.swing.JSeparator();
+        food_bill_id = new javax.swing.JTextField();
+        jLabel89 = new javax.swing.JLabel();
+        foodbill_Cash_on_hand = new javax.swing.JTextField();
+        jButton39 = new javax.swing.JButton();
+        jButton43 = new javax.swing.JButton();
+        jLabel90 = new javax.swing.JLabel();
+        jSeparator59 = new javax.swing.JSeparator();
+        jLabel91 = new javax.swing.JLabel();
+        jSeparator60 = new javax.swing.JSeparator();
+        food_bill_guest_id = new javax.swing.JTextField();
+        jLabel92 = new javax.swing.JLabel();
+        jSeparator61 = new javax.swing.JSeparator();
+        foodbill_guest_name = new javax.swing.JTextField();
+        jLabel93 = new javax.swing.JLabel();
+        jSeparator62 = new javax.swing.JSeparator();
+        foodbill_guest_address = new javax.swing.JTextField();
+        jLabel94 = new javax.swing.JLabel();
+        jSeparator63 = new javax.swing.JSeparator();
+        foodbill_amount = new javax.swing.JTextField();
+        jLabel95 = new javax.swing.JLabel();
+        jSeparator64 = new javax.swing.JSeparator();
+        foodbill_balance = new javax.swing.JTextField();
+        jLabel96 = new javax.swing.JLabel();
+        jSeparator65 = new javax.swing.JSeparator();
+        jLabel97 = new javax.swing.JLabel();
+        foodbill_discount = new javax.swing.JTextField();
+        jSeparator66 = new javax.swing.JSeparator();
+        jLabel98 = new javax.swing.JLabel();
+        foodbill_taxes = new javax.swing.JTextField();
+        jLabel99 = new javax.swing.JLabel();
+        jLabel100 = new javax.swing.JLabel();
+        food_oder_bill_warning = new javax.swing.JTextField();
+        Reservation_bill = new javax.swing.JPanel();
+        jSeparator37 = new javax.swing.JSeparator();
+        res_guest_id = new javax.swing.JTextField();
+        jLabel24 = new javax.swing.JLabel();
+        jSeparator38 = new javax.swing.JSeparator();
+        res_reservation_id = new javax.swing.JTextField();
+        jLabel69 = new javax.swing.JLabel();
+        jSeparator39 = new javax.swing.JSeparator();
+        res_staying_days = new javax.swing.JTextField();
+        jLabel70 = new javax.swing.JLabel();
+        jSeparator40 = new javax.swing.JSeparator();
+        res_basic_amount = new javax.swing.JTextField();
+        jLabel71 = new javax.swing.JLabel();
+        jSeparator41 = new javax.swing.JSeparator();
+        res_guest_name = new javax.swing.JTextField();
+        jLabel72 = new javax.swing.JLabel();
+        jSeparator42 = new javax.swing.JSeparator();
+        res_guest_address = new javax.swing.JTextField();
+        jLabel73 = new javax.swing.JLabel();
+        jSeparator43 = new javax.swing.JSeparator();
+        res_discount = new javax.swing.JTextField();
+        jLabel74 = new javax.swing.JLabel();
+        jSeparator44 = new javax.swing.JSeparator();
+        res_taxes = new javax.swing.JTextField();
+        jLabel75 = new javax.swing.JLabel();
+        jSeparator45 = new javax.swing.JSeparator();
+        res_advance_amount = new javax.swing.JTextField();
+        jLabel76 = new javax.swing.JLabel();
+        jSeparator46 = new javax.swing.JSeparator();
+        res_total_amount = new javax.swing.JTextField();
+        jLabel77 = new javax.swing.JLabel();
+        jSeparator47 = new javax.swing.JSeparator();
+        res_guest_email = new javax.swing.JTextField();
+        jLabel78 = new javax.swing.JLabel();
+        jButton32 = new javax.swing.JButton();
+        jButton33 = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        bill_display = new javax.swing.JTextArea();
+        reservation_bill_warning = new javax.swing.JTextField();
+        jSeparator49 = new javax.swing.JSeparator();
+        res_Balance_resAmount = new javax.swing.JTextField();
+        jLabel80 = new javax.swing.JLabel();
+        jLabel81 = new javax.swing.JLabel();
+        jLabel82 = new javax.swing.JLabel();
+        jLabel83 = new javax.swing.JLabel();
+        jLabel84 = new javax.swing.JLabel();
+        jSeparator50 = new javax.swing.JSeparator();
+        jLabel85 = new javax.swing.JLabel();
+        res_Cash_on_hand = new javax.swing.JTextField();
+        jButton34 = new javax.swing.JButton();
+        jSeparator51 = new javax.swing.JSeparator();
+        res_bill_id = new javax.swing.JTextField();
+        jLabel86 = new javax.swing.JLabel();
+        jButton35 = new javax.swing.JButton();
+        bill_statistic = new javax.swing.JPanel();
+        finance_reports = new javax.swing.JPanel();
         Frontdest = new javax.swing.JPanel();
         guestRegistrationBTN = new javax.swing.JButton();
         reservationBTN = new javax.swing.JButton();
@@ -424,7 +684,7 @@ public class Main_Window extends javax.swing.JFrame {
         FoodManagementBTN = new javax.swing.JButton();
         FoodPackageBTN = new javax.swing.JButton();
         jSeparator30 = new javax.swing.JSeparator();
-        FoodManagementBTN1 = new javax.swing.JButton();
+        FoodOderBTN = new javax.swing.JButton();
         Catering_Base = new javax.swing.JPanel();
         foodPackage = new javax.swing.JPanel();
         jComboBoxfoodmenu = new javax.swing.JComboBox<>();
@@ -434,6 +694,41 @@ public class Main_Window extends javax.swing.JFrame {
         GuestIdTable = new javax.swing.JTable();
         jButton18 = new javax.swing.JButton();
         orderFood = new javax.swing.JPanel();
+        jScrollPane10 = new javax.swing.JScrollPane();
+        ViewFooditem_oder = new javax.swing.JTable();
+        jRadioButton1 = new javax.swing.JRadioButton();
+        jRadioButton2 = new javax.swing.JRadioButton();
+        jRadioButton3 = new javax.swing.JRadioButton();
+        jRadioButton4 = new javax.swing.JRadioButton();
+        jRadioButton5 = new javax.swing.JRadioButton();
+        Foodorder_guest_id_combo = new javax.swing.JComboBox<>();
+        Foodorder_reservation_id_com = new javax.swing.JComboBox<>();
+        jSeparator52 = new javax.swing.JSeparator();
+        food_order_id = new javax.swing.JTextField();
+        jLabel87 = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane11 = new javax.swing.JScrollPane();
+        ViewFooditem_card = new javax.swing.JTable();
+        oder_food_name = new javax.swing.JTextField();
+        oder_food_unit_price = new javax.swing.JTextField();
+        oder_food_qty = new javax.swing.JTextField();
+        oder_food_total_price = new javax.swing.JTextField();
+        jButton36 = new javax.swing.JButton();
+        oder_food_warning = new javax.swing.JTextField();
+        jSeparator53 = new javax.swing.JSeparator();
+        jSeparator54 = new javax.swing.JSeparator();
+        jSeparator55 = new javax.swing.JSeparator();
+        jPanelFood_order_confirm = new javax.swing.JPanel();
+        jToolBar1 = new javax.swing.JToolBar();
+        jButton37 = new javax.swing.JButton();
+        jSeparator56 = new javax.swing.JToolBar.Separator();
+        jButton38 = new javax.swing.JButton();
+        jButton40 = new javax.swing.JButton();
+        jButton41 = new javax.swing.JButton();
+        jButton42 = new javax.swing.JButton();
+        jLabel88 = new javax.swing.JLabel();
+        jSeparator57 = new javax.swing.JSeparator();
+        food_order_FinalAmount = new javax.swing.JTextField();
         Food_management = new javax.swing.JPanel();
         AddnewFoodBTN = new javax.swing.JButton();
         Available_foodBTN = new javax.swing.JButton();
@@ -476,10 +771,34 @@ public class Main_Window extends javax.swing.JFrame {
         jButton24 = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         AddFoodTable = new javax.swing.JTable();
+        Inventory = new javax.swing.JPanel();
+        jLabel25 = new javax.swing.JLabel();
         House_keeping = new javax.swing.JPanel();
         jLabel29 = new javax.swing.JLabel();
-        Developers = new javax.swing.JPanel();
-        jLabel30 = new javax.swing.JLabel();
+        RoomandHall = new javax.swing.JPanel();
+        jButtonAddHalls1 = new javax.swing.JButton();
+        jButton16 = new javax.swing.JButton();
+        jSeparator16 = new javax.swing.JSeparator();
+        RoomandHallBase = new javax.swing.JPanel();
+        addNewroom = new javax.swing.JPanel();
+        jSeparator31 = new javax.swing.JSeparator();
+        jLabel52 = new javax.swing.JLabel();
+        jComboBoxroomBedtype = new javax.swing.JComboBox<>();
+        jLabel27 = new javax.swing.JLabel();
+        jLabel51 = new javax.swing.JLabel();
+        jComboBoxRoomtype = new javax.swing.JComboBox<>();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        AddRoomTableIn = new javax.swing.JTable();
+        jLabel48 = new javax.swing.JLabel();
+        roomWarning = new javax.swing.JLabel();
+        roomIdin = new javax.swing.JTextField();
+        jButton26 = new javax.swing.JButton();
+        roomInprice = new javax.swing.JTextField();
+        jButton25 = new javax.swing.JButton();
+        jLabel64 = new javax.swing.JLabel();
+        jButton20 = new javax.swing.JButton();
+        jButton19 = new javax.swing.JButton();
+        jSeparator32 = new javax.swing.JSeparator();
         Account_settings = new javax.swing.JPanel();
         profileBTN = new javax.swing.JButton();
         createuserBTN = new javax.swing.JButton();
@@ -547,91 +866,8 @@ public class Main_Window extends javax.swing.JFrame {
         jButton6 = new javax.swing.JButton();
         jButton7 = new javax.swing.JButton();
         jLabelpwdswarnning = new javax.swing.JLabel();
-        Billing_And_Report = new javax.swing.JPanel();
-        jButton27 = new javax.swing.JButton();
-        jButton29 = new javax.swing.JButton();
-        jButton30 = new javax.swing.JButton();
-        jButton31 = new javax.swing.JButton();
-        jSeparator36 = new javax.swing.JSeparator();
-        bill_base = new javax.swing.JPanel();
-        Food_order_bill = new javax.swing.JPanel();
-        Reservation_bill = new javax.swing.JPanel();
-        jSeparator37 = new javax.swing.JSeparator();
-        res_guest_id = new javax.swing.JTextField();
-        jLabel24 = new javax.swing.JLabel();
-        jSeparator38 = new javax.swing.JSeparator();
-        res_reservation_id = new javax.swing.JTextField();
-        jLabel69 = new javax.swing.JLabel();
-        jSeparator39 = new javax.swing.JSeparator();
-        res_staying_days = new javax.swing.JTextField();
-        jLabel70 = new javax.swing.JLabel();
-        jSeparator40 = new javax.swing.JSeparator();
-        res_basic_amount = new javax.swing.JTextField();
-        jLabel71 = new javax.swing.JLabel();
-        jSeparator41 = new javax.swing.JSeparator();
-        res_guest_name = new javax.swing.JTextField();
-        jLabel72 = new javax.swing.JLabel();
-        jSeparator42 = new javax.swing.JSeparator();
-        res_guest_address = new javax.swing.JTextField();
-        jLabel73 = new javax.swing.JLabel();
-        jSeparator43 = new javax.swing.JSeparator();
-        res_discount = new javax.swing.JTextField();
-        jLabel74 = new javax.swing.JLabel();
-        jSeparator44 = new javax.swing.JSeparator();
-        res_taxes = new javax.swing.JTextField();
-        jLabel75 = new javax.swing.JLabel();
-        jSeparator45 = new javax.swing.JSeparator();
-        res_advance_amount = new javax.swing.JTextField();
-        jLabel76 = new javax.swing.JLabel();
-        jSeparator46 = new javax.swing.JSeparator();
-        res_total_amount = new javax.swing.JTextField();
-        jLabel77 = new javax.swing.JLabel();
-        jSeparator47 = new javax.swing.JSeparator();
-        res_guest_email = new javax.swing.JTextField();
-        jLabel78 = new javax.swing.JLabel();
-        jButton32 = new javax.swing.JButton();
-        jButton33 = new javax.swing.JButton();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        bill_display = new javax.swing.JTextArea();
-        reservation_bill_warning = new javax.swing.JTextField();
-        jSeparator49 = new javax.swing.JSeparator();
-        res_Balance_resAmount = new javax.swing.JTextField();
-        jLabel80 = new javax.swing.JLabel();
-        jLabel81 = new javax.swing.JLabel();
-        jLabel82 = new javax.swing.JLabel();
-        jLabel83 = new javax.swing.JLabel();
-        jLabel84 = new javax.swing.JLabel();
-        jSeparator50 = new javax.swing.JSeparator();
-        jLabel85 = new javax.swing.JLabel();
-        res_Cash_on_hand = new javax.swing.JTextField();
-        jButton34 = new javax.swing.JButton();
-        bill_statistic = new javax.swing.JPanel();
-        finance_reports = new javax.swing.JPanel();
-        RoomandHall = new javax.swing.JPanel();
-        jButtonAddHalls1 = new javax.swing.JButton();
-        jButton16 = new javax.swing.JButton();
-        jSeparator16 = new javax.swing.JSeparator();
-        RoomandHallBase = new javax.swing.JPanel();
-        addNewroom = new javax.swing.JPanel();
-        jSeparator31 = new javax.swing.JSeparator();
-        jLabel52 = new javax.swing.JLabel();
-        jComboBoxroomBedtype = new javax.swing.JComboBox<>();
-        jLabel27 = new javax.swing.JLabel();
-        jLabel51 = new javax.swing.JLabel();
-        jComboBoxRoomtype = new javax.swing.JComboBox<>();
-        jScrollPane6 = new javax.swing.JScrollPane();
-        AddRoomTableIn = new javax.swing.JTable();
-        jLabel48 = new javax.swing.JLabel();
-        roomWarning = new javax.swing.JLabel();
-        roomIdin = new javax.swing.JTextField();
-        jButton26 = new javax.swing.JButton();
-        roomInprice = new javax.swing.JTextField();
-        jButton25 = new javax.swing.JButton();
-        jLabel64 = new javax.swing.JLabel();
-        jButton20 = new javax.swing.JButton();
-        jButton19 = new javax.swing.JButton();
-        jSeparator32 = new javax.swing.JSeparator();
-        time_lbl = new javax.swing.JLabel();
+        Developers = new javax.swing.JPanel();
+        jLabel30 = new javax.swing.JLabel();
 
         food_price_out1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
 
@@ -643,6 +879,11 @@ public class Main_Window extends javax.swing.JFrame {
         bg.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 3, true));
         bg.setMaximumSize(new java.awt.Dimension(1332, 721));
         bg.setPreferredSize(new java.awt.Dimension(1332, 721));
+        bg.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                bgMouseDragged(evt);
+            }
+        });
 
         jButton1.setBackground(new java.awt.Color(0, 0, 0));
         jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/close.png"))); // NOI18N
@@ -688,6 +929,10 @@ public class Main_Window extends javax.swing.JFrame {
         DateLbl.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         DateLbl.setForeground(new java.awt.Color(255, 255, 255));
         DateLbl.setText("Hotel Management System");
+
+        time_lbl.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+        time_lbl.setForeground(new java.awt.Color(255, 255, 255));
+        time_lbl.setText("00:00:00");
 
         side_Panel.setBackground(new java.awt.Color(0, 0, 0));
         side_Panel.setMaximumSize(new java.awt.Dimension(277, 618));
@@ -962,29 +1207,959 @@ public class Main_Window extends javax.swing.JFrame {
         Dynamic_Panel.setBackground(new java.awt.Color(153, 153, 153));
         Dynamic_Panel.setLayout(new java.awt.CardLayout());
 
-        Inventory.setBackground(new java.awt.Color(255, 255, 255));
+        Billing_And_Report.setBackground(new java.awt.Color(255, 255, 255));
+        Billing_And_Report.setMaximumSize(new java.awt.Dimension(1007, 613));
+        Billing_And_Report.setMinimumSize(new java.awt.Dimension(1007, 613));
 
-        jLabel25.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
-        jLabel25.setText("Inventory");
+        jButton27.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton27.setText("Reservation Billing");
+        jButton27.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton27MouseClicked(evt);
+            }
+        });
 
-        javax.swing.GroupLayout InventoryLayout = new javax.swing.GroupLayout(Inventory);
-        Inventory.setLayout(InventoryLayout);
-        InventoryLayout.setHorizontalGroup(
-            InventoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(InventoryLayout.createSequentialGroup()
-                .addGap(404, 404, 404)
-                .addComponent(jLabel25, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(493, Short.MAX_VALUE))
+        jButton29.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton29.setText("Food order Billing");
+        jButton29.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton29MouseClicked(evt);
+            }
+        });
+        jButton29.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton29ActionPerformed(evt);
+            }
+        });
+
+        jButton30.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton30.setText("Fianance and Reports");
+        jButton30.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton30MouseClicked(evt);
+            }
+        });
+
+        jButton31.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton31.setText("Statistics");
+        jButton31.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton31MouseClicked(evt);
+            }
+        });
+
+        bill_base.setBackground(new java.awt.Color(255, 255, 255));
+        bill_base.setMaximumSize(new java.awt.Dimension(1106, 554));
+        bill_base.setMinimumSize(new java.awt.Dimension(1106, 554));
+        bill_base.setLayout(new java.awt.CardLayout());
+
+        Food_order_bill.setBackground(new java.awt.Color(255, 255, 255));
+        Food_order_bill.setMaximumSize(new java.awt.Dimension(1106, 554));
+        Food_order_bill.setMinimumSize(new java.awt.Dimension(1106, 554));
+
+        bill_display1.setColumns(20);
+        bill_display1.setFont(new java.awt.Font("Tahoma", 0, 13)); // NOI18N
+        bill_display1.setRows(5);
+        bill_display1.setBorder(javax.swing.BorderFactory.createMatteBorder(2, 1, 2, 1, new java.awt.Color(1, 0, 1)));
+        jScrollPane12.setViewportView(bill_display1);
+
+        jSeparator58.setBackground(new java.awt.Color(0, 0, 0));
+
+        food_bill_id.setBackground(new java.awt.Color(242, 248, 249));
+        food_bill_id.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        food_bill_id.setBorder(null);
+        food_bill_id.setEnabled(false);
+        food_bill_id.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                food_bill_idKeyPressed(evt);
+            }
+        });
+
+        jLabel89.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel89.setText("Bill No :");
+
+        foodbill_Cash_on_hand.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        foodbill_Cash_on_hand.setBorder(null);
+        foodbill_Cash_on_hand.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                foodbill_Cash_on_handKeyPressed(evt);
+            }
+        });
+
+        jButton39.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton39.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/gmail.png"))); // NOI18N
+        jButton39.setText("Send Invoice");
+        jButton39.setIconTextGap(10);
+        jButton39.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton39MouseClicked(evt);
+            }
+        });
+
+        jButton43.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton43.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/bill_print.png"))); // NOI18N
+        jButton43.setText("Print Invoice");
+        jButton43.setIconTextGap(10);
+        jButton43.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton43ActionPerformed(evt);
+            }
+        });
+
+        jLabel90.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel90.setText("Cash ");
+
+        jSeparator59.setBackground(new java.awt.Color(0, 0, 0));
+
+        jLabel91.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel91.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/Cash_inHand.png"))); // NOI18N
+        jLabel91.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel91MouseClicked(evt);
+            }
+        });
+
+        jSeparator60.setBackground(new java.awt.Color(0, 0, 0));
+
+        food_bill_guest_id.setBackground(new java.awt.Color(242, 248, 249));
+        food_bill_guest_id.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        food_bill_guest_id.setBorder(null);
+        food_bill_guest_id.setEnabled(false);
+        food_bill_guest_id.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                food_bill_guest_idKeyPressed(evt);
+            }
+        });
+
+        jLabel92.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel92.setText("Guest ID");
+
+        jSeparator61.setBackground(new java.awt.Color(0, 0, 0));
+
+        foodbill_guest_name.setBackground(new java.awt.Color(242, 248, 249));
+        foodbill_guest_name.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        foodbill_guest_name.setBorder(null);
+        foodbill_guest_name.setEnabled(false);
+        foodbill_guest_name.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                foodbill_guest_nameKeyPressed(evt);
+            }
+        });
+
+        jLabel93.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel93.setText("Guest Name");
+
+        jSeparator62.setBackground(new java.awt.Color(0, 0, 0));
+
+        foodbill_guest_address.setBackground(new java.awt.Color(242, 248, 249));
+        foodbill_guest_address.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        foodbill_guest_address.setBorder(null);
+        foodbill_guest_address.setEnabled(false);
+        foodbill_guest_address.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                foodbill_guest_addressKeyPressed(evt);
+            }
+        });
+
+        jLabel94.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel94.setText("Guest email");
+
+        jSeparator63.setBackground(new java.awt.Color(0, 0, 0));
+
+        foodbill_amount.setBackground(new java.awt.Color(242, 248, 249));
+        foodbill_amount.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        foodbill_amount.setBorder(null);
+        foodbill_amount.setEnabled(false);
+        foodbill_amount.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                foodbill_amountKeyPressed(evt);
+            }
+        });
+
+        jLabel95.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel95.setText("Amount");
+
+        jSeparator64.setBackground(new java.awt.Color(0, 0, 0));
+
+        foodbill_balance.setBackground(new java.awt.Color(242, 248, 249));
+        foodbill_balance.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        foodbill_balance.setBorder(null);
+        foodbill_balance.setEnabled(false);
+        foodbill_balance.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                foodbill_balanceKeyPressed(evt);
+            }
+        });
+
+        jLabel96.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel96.setText("Balance");
+
+        jSeparator65.setBackground(new java.awt.Color(0, 0, 0));
+
+        jLabel97.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel97.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/percentage_20.png"))); // NOI18N
+
+        foodbill_discount.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        foodbill_discount.setBorder(null);
+        foodbill_discount.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                foodbill_discountKeyPressed(evt);
+            }
+        });
+
+        jSeparator66.setBackground(new java.awt.Color(0, 0, 0));
+
+        jLabel98.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel98.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/percentage_20.png"))); // NOI18N
+
+        foodbill_taxes.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        foodbill_taxes.setBorder(null);
+        foodbill_taxes.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                foodbill_taxesKeyPressed(evt);
+            }
+        });
+
+        jLabel99.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel99.setText("Discounts");
+
+        jLabel100.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel100.setText("Taxes");
+
+        food_oder_bill_warning.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        food_oder_bill_warning.setForeground(new java.awt.Color(255, 0, 0));
+
+        javax.swing.GroupLayout Food_order_billLayout = new javax.swing.GroupLayout(Food_order_bill);
+        Food_order_bill.setLayout(Food_order_billLayout);
+        Food_order_billLayout.setHorizontalGroup(
+            Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(Food_order_billLayout.createSequentialGroup()
+                .addGap(31, 31, 31)
+                .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(food_oder_bill_warning, javax.swing.GroupLayout.PREFERRED_SIZE, 384, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(Food_order_billLayout.createSequentialGroup()
+                        .addComponent(jLabel89)
+                        .addGap(54, 54, 54)
+                        .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jSeparator58)
+                            .addComponent(food_bill_id, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(Food_order_billLayout.createSequentialGroup()
+                            .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel93)
+                                .addComponent(jLabel94)
+                                .addComponent(jLabel92)
+                                .addComponent(jLabel95))
+                            .addGap(21, 21, 21)
+                            .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(jSeparator62)
+                                .addComponent(jSeparator60)
+                                .addComponent(foodbill_guest_address)
+                                .addComponent(jSeparator61)
+                                .addComponent(foodbill_guest_name)
+                                .addComponent(food_bill_guest_id)
+                                .addComponent(jSeparator63, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(foodbill_amount, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, Food_order_billLayout.createSequentialGroup()
+                                .addComponent(jLabel96, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jSeparator64)
+                                    .addComponent(foodbill_balance, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(3, 3, 3))
+                            .addGroup(Food_order_billLayout.createSequentialGroup()
+                                .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(Food_order_billLayout.createSequentialGroup()
+                                        .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(jLabel100)
+                                            .addComponent(jLabel99))
+                                        .addGap(42, 42, 42)
+                                        .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, Food_order_billLayout.createSequentialGroup()
+                                                .addComponent(foodbill_taxes, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jLabel98, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(jSeparator65, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, Food_order_billLayout.createSequentialGroup()
+                                                    .addComponent(foodbill_discount, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                    .addComponent(jLabel97, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                    .addComponent(jSeparator66, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, Food_order_billLayout.createSequentialGroup()
+                                .addComponent(jLabel90)
+                                .addGap(74, 74, 74)
+                                .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(Food_order_billLayout.createSequentialGroup()
+                                        .addComponent(foodbill_Cash_on_hand)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel91, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jSeparator59, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                .addGap(18, 18, 18)
+                .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(Food_order_billLayout.createSequentialGroup()
+                        .addComponent(jButton39, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton43, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane12, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(320, Short.MAX_VALUE))
         );
-        InventoryLayout.setVerticalGroup(
-            InventoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(InventoryLayout.createSequentialGroup()
-                .addGap(238, 238, 238)
-                .addComponent(jLabel25, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(341, Short.MAX_VALUE))
+        Food_order_billLayout.setVerticalGroup(
+            Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, Food_order_billLayout.createSequentialGroup()
+                .addGap(0, 8, Short.MAX_VALUE)
+                .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(Food_order_billLayout.createSequentialGroup()
+                        .addComponent(jScrollPane12, javax.swing.GroupLayout.PREFERRED_SIZE, 437, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton43, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButton39, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(Food_order_billLayout.createSequentialGroup()
+                        .addComponent(food_oder_bill_warning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(food_bill_id, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel89, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, 0)
+                        .addComponent(jSeparator58, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(food_bill_guest_id, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel92, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, 0)
+                        .addComponent(jSeparator60, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(8, 8, 8)
+                        .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel93)
+                            .addGroup(Food_order_billLayout.createSequentialGroup()
+                                .addComponent(foodbill_guest_name, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, 0)
+                                .addComponent(jSeparator61, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(foodbill_guest_address, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel94, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addGap(0, 0, 0)
+                        .addComponent(jSeparator62, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(foodbill_amount, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel95, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, 0)
+                        .addComponent(jSeparator63, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(foodbill_balance, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel96, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, 0)
+                        .addComponent(jSeparator64, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(Food_order_billLayout.createSequentialGroup()
+                                .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(foodbill_taxes)
+                                    .addComponent(jLabel98, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jSeparator66, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(8, 8, 8)
+                                .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(foodbill_discount, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel97, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(Food_order_billLayout.createSequentialGroup()
+                                .addComponent(jLabel100, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(jLabel99, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jSeparator65, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel91, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(foodbill_Cash_on_hand, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel90, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jSeparator59, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(60, 60, 60))
         );
 
-        Dynamic_Panel.add(Inventory, "card2");
+        bill_base.add(Food_order_bill, "card3");
+
+        Reservation_bill.setBackground(new java.awt.Color(255, 255, 255));
+        Reservation_bill.setMaximumSize(new java.awt.Dimension(1106, 554));
+        Reservation_bill.setMinimumSize(new java.awt.Dimension(1106, 554));
+
+        jSeparator37.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_guest_id.setBackground(new java.awt.Color(242, 248, 249));
+        res_guest_id.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_guest_id.setBorder(null);
+        res_guest_id.setEnabled(false);
+        res_guest_id.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_guest_idKeyPressed(evt);
+            }
+        });
+
+        jLabel24.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel24.setText("Guest ID");
+
+        jSeparator38.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_reservation_id.setBackground(new java.awt.Color(242, 248, 249));
+        res_reservation_id.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_reservation_id.setBorder(null);
+        res_reservation_id.setEnabled(false);
+        res_reservation_id.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_reservation_idKeyPressed(evt);
+            }
+        });
+
+        jLabel69.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel69.setText("Reservation ID");
+
+        jSeparator39.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_staying_days.setBackground(new java.awt.Color(242, 248, 249));
+        res_staying_days.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_staying_days.setBorder(null);
+        res_staying_days.setEnabled(false);
+        res_staying_days.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_staying_daysKeyPressed(evt);
+            }
+        });
+
+        jLabel70.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel70.setText("Day's in stay");
+
+        jSeparator40.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_basic_amount.setBackground(new java.awt.Color(242, 248, 249));
+        res_basic_amount.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_basic_amount.setBorder(null);
+        res_basic_amount.setEnabled(false);
+        res_basic_amount.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_basic_amountKeyPressed(evt);
+            }
+        });
+
+        jLabel71.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel71.setText("Reservation Amount");
+
+        jSeparator41.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_guest_name.setBackground(new java.awt.Color(242, 248, 249));
+        res_guest_name.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_guest_name.setBorder(null);
+        res_guest_name.setEnabled(false);
+        res_guest_name.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_guest_nameKeyPressed(evt);
+            }
+        });
+
+        jLabel72.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel72.setText("Guest Name");
+
+        jSeparator42.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_guest_address.setBackground(new java.awt.Color(242, 248, 249));
+        res_guest_address.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_guest_address.setBorder(null);
+        res_guest_address.setEnabled(false);
+        res_guest_address.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_guest_addressKeyPressed(evt);
+            }
+        });
+
+        jLabel73.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel73.setText("Guest Address");
+
+        jSeparator43.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_discount.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_discount.setBorder(null);
+        res_discount.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_discountKeyPressed(evt);
+            }
+        });
+
+        jLabel74.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel74.setText("Discounts");
+
+        jSeparator44.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_taxes.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_taxes.setBorder(null);
+        res_taxes.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_taxesKeyPressed(evt);
+            }
+        });
+
+        jLabel75.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel75.setText("Taxes");
+
+        jSeparator45.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_advance_amount.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_advance_amount.setBorder(null);
+        res_advance_amount.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_advance_amountKeyPressed(evt);
+            }
+        });
+
+        jLabel76.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel76.setText("Advance Amount");
+
+        jSeparator46.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_total_amount.setBackground(new java.awt.Color(242, 248, 249));
+        res_total_amount.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_total_amount.setBorder(null);
+        res_total_amount.setEnabled(false);
+        res_total_amount.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_total_amountKeyPressed(evt);
+            }
+        });
+
+        jLabel77.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel77.setText("Total Amount");
+
+        jSeparator47.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_guest_email.setBackground(new java.awt.Color(242, 248, 249));
+        res_guest_email.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_guest_email.setBorder(null);
+        res_guest_email.setEnabled(false);
+        res_guest_email.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_guest_emailKeyPressed(evt);
+            }
+        });
+
+        jLabel78.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel78.setText("Guest Email");
+
+        jButton32.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton32.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/estimate_amount.png"))); // NOI18N
+        jButton32.setText("Calculate the sub total");
+        jButton32.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton32MouseClicked(evt);
+            }
+        });
+
+        jButton33.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton33.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/bill_print.png"))); // NOI18N
+        jButton33.setText("Print Invoice");
+        jButton33.setIconTextGap(10);
+        jButton33.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton33ActionPerformed(evt);
+            }
+        });
+
+        bill_display.setColumns(20);
+        bill_display.setFont(new java.awt.Font("Tahoma", 0, 13)); // NOI18N
+        bill_display.setRows(5);
+        bill_display.setBorder(javax.swing.BorderFactory.createMatteBorder(2, 1, 2, 1, new java.awt.Color(1, 0, 1)));
+        jScrollPane2.setViewportView(bill_display);
+
+        reservation_bill_warning.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        reservation_bill_warning.setForeground(new java.awt.Color(255, 0, 0));
+        reservation_bill_warning.setBorder(null);
+
+        jSeparator49.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_Balance_resAmount.setBackground(new java.awt.Color(242, 248, 249));
+        res_Balance_resAmount.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_Balance_resAmount.setBorder(null);
+        res_Balance_resAmount.setEnabled(false);
+        res_Balance_resAmount.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_Balance_resAmountKeyPressed(evt);
+            }
+        });
+
+        jLabel80.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel80.setText("Payable Amount");
+
+        jLabel81.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel81.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/percentage_20.png"))); // NOI18N
+
+        jLabel82.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel82.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/percentage_20.png"))); // NOI18N
+
+        jLabel83.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel83.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/Cash_inHand.png"))); // NOI18N
+
+        jLabel84.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel84.setText("Cash on Hand");
+
+        jSeparator50.setBackground(new java.awt.Color(0, 0, 0));
+
+        jLabel85.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel85.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/Cash_inHand.png"))); // NOI18N
+        jLabel85.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel85MouseClicked(evt);
+            }
+        });
+
+        res_Cash_on_hand.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_Cash_on_hand.setBorder(null);
+        res_Cash_on_hand.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_Cash_on_handKeyPressed(evt);
+            }
+        });
+
+        jButton34.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton34.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/gmail.png"))); // NOI18N
+        jButton34.setText("Send Invoice");
+        jButton34.setIconTextGap(10);
+        jButton34.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton34MouseClicked(evt);
+            }
+        });
+
+        jSeparator51.setBackground(new java.awt.Color(0, 0, 0));
+
+        res_bill_id.setBackground(new java.awt.Color(242, 248, 249));
+        res_bill_id.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
+        res_bill_id.setBorder(null);
+        res_bill_id.setEnabled(false);
+        res_bill_id.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                res_bill_idKeyPressed(evt);
+            }
+        });
+
+        jLabel86.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel86.setText("Bill No :");
+
+        jButton35.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton35.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/Adelete.png"))); // NOI18N
+        jButton35.setText("Cancel ");
+        jButton35.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton35MouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout Reservation_billLayout = new javax.swing.GroupLayout(Reservation_bill);
+        Reservation_bill.setLayout(Reservation_billLayout);
+        Reservation_billLayout.setHorizontalGroup(
+            Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(Reservation_billLayout.createSequentialGroup()
+                .addGap(25, 25, 25)
+                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(Reservation_billLayout.createSequentialGroup()
+                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel75)
+                            .addComponent(jLabel74)
+                            .addComponent(jLabel76, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jButton35, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(35, 35, 35)
+                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jButton32, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jSeparator45)
+                            .addGroup(Reservation_billLayout.createSequentialGroup()
+                                .addComponent(res_advance_amount)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel83, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jSeparator43)
+                            .addGroup(Reservation_billLayout.createSequentialGroup()
+                                .addComponent(res_discount)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jSeparator44, javax.swing.GroupLayout.DEFAULT_SIZE, 252, Short.MAX_VALUE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, Reservation_billLayout.createSequentialGroup()
+                                .addComponent(res_taxes)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel81, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(reservation_bill_warning)
+                        .addGroup(Reservation_billLayout.createSequentialGroup()
+                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel24)
+                                .addComponent(jLabel72))
+                            .addGap(73, 73, 73)
+                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(jSeparator42, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(res_guest_address, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jSeparator41, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(res_guest_name, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jSeparator37, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(res_guest_id, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(Reservation_billLayout.createSequentialGroup()
+                            .addComponent(jLabel69)
+                            .addGap(53, 53, 53)
+                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jSeparator38)
+                                .addComponent(res_reservation_id)))
+                        .addComponent(jLabel73)
+                        .addGroup(Reservation_billLayout.createSequentialGroup()
+                            .addComponent(jLabel78)
+                            .addGap(76, 76, 76)
+                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(jSeparator47)
+                                .addComponent(res_guest_email, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(Reservation_billLayout.createSequentialGroup()
+                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel71)
+                                .addComponent(jLabel70))
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jSeparator39)
+                                .addComponent(res_staying_days)
+                                .addComponent(jSeparator40)
+                                .addComponent(res_basic_amount)))
+                        .addComponent(jLabel80)
+                        .addGroup(Reservation_billLayout.createSequentialGroup()
+                            .addComponent(jLabel77)
+                            .addGap(61, 61, 61)
+                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jSeparator49)
+                                .addComponent(res_total_amount, javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(res_Balance_resAmount, javax.swing.GroupLayout.Alignment.TRAILING)))
+                        .addComponent(jSeparator46, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(141, 141, 141)
+                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(Reservation_billLayout.createSequentialGroup()
+                                .addComponent(jButton34, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButton33, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 2, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(Reservation_billLayout.createSequentialGroup()
+                            .addComponent(jLabel86)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(res_bill_id, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jSeparator51, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGap(21, 21, 21)))
+                    .addGroup(Reservation_billLayout.createSequentialGroup()
+                        .addComponent(jLabel84)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(Reservation_billLayout.createSequentialGroup()
+                                .addComponent(res_Cash_on_hand, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel85, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jSeparator50, javax.swing.GroupLayout.PREFERRED_SIZE, 230, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap())
+        );
+        Reservation_billLayout.setVerticalGroup(
+            Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(Reservation_billLayout.createSequentialGroup()
+                .addGap(3, 3, 3)
+                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(Reservation_billLayout.createSequentialGroup()
+                        .addComponent(res_bill_id, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jSeparator51, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(reservation_bill_warning, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel86))
+                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(Reservation_billLayout.createSequentialGroup()
+                        .addGap(8, 8, 8)
+                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(Reservation_billLayout.createSequentialGroup()
+                                .addGap(116, 116, 116)
+                                .addComponent(res_guest_email, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, 0)
+                                .addComponent(jSeparator47, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(res_reservation_id, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, 0)
+                                .addComponent(jSeparator38, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(8, 8, 8)
+                                .addComponent(res_staying_days, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(Reservation_billLayout.createSequentialGroup()
+                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(Reservation_billLayout.createSequentialGroup()
+                                        .addComponent(res_guest_id, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, 0)
+                                        .addComponent(jSeparator37, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jLabel24))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(Reservation_billLayout.createSequentialGroup()
+                                        .addComponent(res_guest_name, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, 0)
+                                        .addComponent(jSeparator41, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jLabel72))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(Reservation_billLayout.createSequentialGroup()
+                                        .addComponent(res_guest_address, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, 0)
+                                        .addComponent(jSeparator42, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jLabel73, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel78, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jLabel69, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jLabel70, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, 0)
+                        .addComponent(jSeparator39, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(8, 8, 8)
+                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(Reservation_billLayout.createSequentialGroup()
+                                .addComponent(res_basic_amount)
+                                .addGap(0, 0, 0)
+                                .addComponent(jSeparator40, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel71, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(res_total_amount, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel77, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, 0)
+                        .addComponent(jSeparator46, javax.swing.GroupLayout.PREFERRED_SIZE, 4, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel80, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(res_Balance_resAmount, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, 0)
+                        .addComponent(jSeparator49, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(Reservation_billLayout.createSequentialGroup()
+                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(res_taxes, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
+                                    .addComponent(jLabel81, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGap(0, 0, 0)
+                                .addComponent(jSeparator44, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(Reservation_billLayout.createSequentialGroup()
+                                        .addGap(8, 8, 8)
+                                        .addComponent(res_discount, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(Reservation_billLayout.createSequentialGroup()
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGap(0, 0, 0)
+                                .addComponent(jSeparator43, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(res_advance_amount, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel83, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(0, 0, 0)
+                                .addComponent(jSeparator45, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(Reservation_billLayout.createSequentialGroup()
+                                .addComponent(jLabel75, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel74, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(13, 13, 13)
+                                .addComponent(jLabel76, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jButton32, javax.swing.GroupLayout.DEFAULT_SIZE, 38, Short.MAX_VALUE)
+                            .addComponent(jButton35, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(Reservation_billLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel84, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel85, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(res_Cash_on_hand, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, 0)
+                        .addComponent(jSeparator50, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton33, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButton34, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap())
+        );
+
+        bill_base.add(Reservation_bill, "card2");
+
+        bill_statistic.setBackground(new java.awt.Color(255, 255, 255));
+        bill_statistic.setMaximumSize(new java.awt.Dimension(1106, 554));
+        bill_statistic.setMinimumSize(new java.awt.Dimension(1106, 554));
+
+        javax.swing.GroupLayout bill_statisticLayout = new javax.swing.GroupLayout(bill_statistic);
+        bill_statistic.setLayout(bill_statisticLayout);
+        bill_statisticLayout.setHorizontalGroup(
+            bill_statisticLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 1106, Short.MAX_VALUE)
+        );
+        bill_statisticLayout.setVerticalGroup(
+            bill_statisticLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 554, Short.MAX_VALUE)
+        );
+
+        bill_base.add(bill_statistic, "card5");
+
+        finance_reports.setBackground(new java.awt.Color(255, 255, 255));
+        finance_reports.setMaximumSize(new java.awt.Dimension(1106, 554));
+        finance_reports.setMinimumSize(new java.awt.Dimension(1106, 554));
+
+        javax.swing.GroupLayout finance_reportsLayout = new javax.swing.GroupLayout(finance_reports);
+        finance_reports.setLayout(finance_reportsLayout);
+        finance_reportsLayout.setHorizontalGroup(
+            finance_reportsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 1106, Short.MAX_VALUE)
+        );
+        finance_reportsLayout.setVerticalGroup(
+            finance_reportsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 554, Short.MAX_VALUE)
+        );
+
+        bill_base.add(finance_reports, "card4");
+
+        javax.swing.GroupLayout Billing_And_ReportLayout = new javax.swing.GroupLayout(Billing_And_Report);
+        Billing_And_Report.setLayout(Billing_And_ReportLayout);
+        Billing_And_ReportLayout.setHorizontalGroup(
+            Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(Billing_And_ReportLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jButton27, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jButton29, javax.swing.GroupLayout.PREFERRED_SIZE, 231, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jButton30, javax.swing.GroupLayout.PREFERRED_SIZE, 234, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jButton31, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(Billing_And_ReportLayout.createSequentialGroup()
+                .addGroup(Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(jSeparator36)
+                    .addComponent(bill_base, javax.swing.GroupLayout.PREFERRED_SIZE, 1007, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+        Billing_And_ReportLayout.setVerticalGroup(
+            Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(Billing_And_ReportLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton27, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton29, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton30, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton31, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSeparator36, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(bill_base, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
+        Dynamic_Panel.add(Billing_And_Report, "card2");
 
         Frontdest.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -1369,7 +2544,7 @@ public class Main_Window extends javax.swing.JFrame {
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                         .addContainerGap())
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, GuestRegistartionLayout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 219, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 223, Short.MAX_VALUE)
                         .addComponent(jLabel26)
                         .addGap(129, 129, 129))))
         );
@@ -1382,7 +2557,7 @@ public class Main_Window extends javax.swing.JFrame {
                         .addGroup(GuestRegistartionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(GuestRegistartionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                 .addComponent(guest_in_image, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(Camera_panel1, javax.swing.GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE))
+                                .addComponent(Camera_panel1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                             .addComponent(jCheckBoxCamereCheck))
                         .addGap(15, 15, 15)
                         .addComponent(guest_warning_text, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1820,11 +2995,11 @@ public class Main_Window extends javax.swing.JFrame {
             }
         });
 
-        FoodManagementBTN1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        FoodManagementBTN1.setText("Food Order");
-        FoodManagementBTN1.addMouseListener(new java.awt.event.MouseAdapter() {
+        FoodOderBTN.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        FoodOderBTN.setText("Food Order");
+        FoodOderBTN.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                FoodManagementBTN1MouseClicked(evt);
+                FoodOderBTNMouseClicked(evt);
             }
         });
 
@@ -1930,15 +3105,419 @@ public class Main_Window extends javax.swing.JFrame {
 
         orderFood.setBackground(new java.awt.Color(255, 255, 255));
 
+        ViewFooditem_oder.setBackground(new java.awt.Color(231, 240, 240));
+        ViewFooditem_oder.setBorder(new javax.swing.border.MatteBorder(null));
+        ViewFooditem_oder.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        ViewFooditem_oder.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "ID", "Name", "PRICE"
+            }
+        ));
+        ViewFooditem_oder.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        ViewFooditem_oder.setFillsViewportHeight(true);
+        ViewFooditem_oder.setGridColor(new java.awt.Color(51, 51, 51));
+        ViewFooditem_oder.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                ViewFooditem_oderMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                ViewFooditem_oderMouseEntered(evt);
+            }
+        });
+        jScrollPane10.setViewportView(ViewFooditem_oder);
+
+        jRadioButton1.setBackground(new java.awt.Color(255, 255, 255));
+        buttonGroup1Food_order.add(jRadioButton1);
+        jRadioButton1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jRadioButton1.setText("Breakfast");
+        jRadioButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jRadioButton1MouseClicked(evt);
+            }
+        });
+        jRadioButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButton1ActionPerformed(evt);
+            }
+        });
+
+        jRadioButton2.setBackground(new java.awt.Color(255, 255, 255));
+        buttonGroup1Food_order.add(jRadioButton2);
+        jRadioButton2.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jRadioButton2.setText("Lunch");
+        jRadioButton2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jRadioButton2MouseClicked(evt);
+            }
+        });
+        jRadioButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButton2ActionPerformed(evt);
+            }
+        });
+
+        jRadioButton3.setBackground(new java.awt.Color(255, 255, 255));
+        buttonGroup1Food_order.add(jRadioButton3);
+        jRadioButton3.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jRadioButton3.setText("Dinner");
+        jRadioButton3.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jRadioButton3MouseClicked(evt);
+            }
+        });
+
+        jRadioButton4.setBackground(new java.awt.Color(255, 255, 255));
+        buttonGroup1Food_order.add(jRadioButton4);
+        jRadioButton4.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jRadioButton4.setText("Drinks & Bevarage");
+        jRadioButton4.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jRadioButton4MouseClicked(evt);
+            }
+        });
+
+        jRadioButton5.setBackground(new java.awt.Color(255, 255, 255));
+        buttonGroup1Food_order.add(jRadioButton5);
+        jRadioButton5.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jRadioButton5.setText("All foods");
+        jRadioButton5.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jRadioButton5MouseClicked(evt);
+            }
+        });
+
+        Foodorder_guest_id_combo.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        Foodorder_guest_id_combo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Guest ID" }));
+
+        Foodorder_reservation_id_com.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        Foodorder_reservation_id_com.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Reservation ID" }));
+
+        food_order_id.setBackground(new java.awt.Color(238, 245, 249));
+        food_order_id.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        food_order_id.setBorder(null);
+        food_order_id.setDisabledTextColor(new java.awt.Color(0, 0, 0));
+        food_order_id.setEnabled(false);
+
+        jLabel87.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel87.setText("Order ID");
+
+        jPanel1.setBackground(new java.awt.Color(246, 249, 252));
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Food Card"));
+
+        ViewFooditem_card.setBackground(new java.awt.Color(231, 240, 240));
+        ViewFooditem_card.setBorder(new javax.swing.border.MatteBorder(null));
+        ViewFooditem_card.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        ViewFooditem_card.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Items", "Quantity", "unit price", "Total"
+            }
+        ));
+        ViewFooditem_card.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        ViewFooditem_card.setFillsViewportHeight(true);
+        ViewFooditem_card.setGridColor(new java.awt.Color(51, 51, 51));
+        ViewFooditem_card.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                ViewFooditem_cardMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                ViewFooditem_cardMouseEntered(evt);
+            }
+        });
+        jScrollPane11.setViewportView(ViewFooditem_card);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane11)
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane11, javax.swing.GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        oder_food_name.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        oder_food_name.setText("Food name");
+        oder_food_name.setBorder(null);
+        oder_food_name.setDisabledTextColor(new java.awt.Color(0, 0, 0));
+        oder_food_name.setEnabled(false);
+
+        oder_food_unit_price.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        oder_food_unit_price.setText("Price");
+        oder_food_unit_price.setBorder(null);
+        oder_food_unit_price.setDisabledTextColor(new java.awt.Color(0, 0, 0));
+        oder_food_unit_price.setEnabled(false);
+
+        oder_food_qty.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        oder_food_qty.setText("Qty");
+        oder_food_qty.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                oder_food_qtyFocusGained(evt);
+            }
+        });
+        oder_food_qty.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                oder_food_qtyKeyPressed(evt);
+            }
+        });
+
+        oder_food_total_price.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        oder_food_total_price.setText("SubTotal");
+        oder_food_total_price.setBorder(null);
+        oder_food_total_price.setDisabledTextColor(new java.awt.Color(0, 0, 0));
+        oder_food_total_price.setEnabled(false);
+
+        jButton36.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton36.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/add_food_card.png"))); // NOI18N
+        jButton36.setText("Add to the Card");
+        jButton36.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton36MouseClicked(evt);
+            }
+        });
+
+        oder_food_warning.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        oder_food_warning.setForeground(new java.awt.Color(255, 0, 0));
+        oder_food_warning.setBorder(null);
+
+        jPanelFood_order_confirm.setBackground(new java.awt.Color(246, 249, 252));
+        jPanelFood_order_confirm.setBorder(javax.swing.BorderFactory.createTitledBorder("Oder Conformation"));
+
+        jToolBar1.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
+        jToolBar1.setRollover(true);
+
+        jButton37.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton37.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/AUpdate.png"))); // NOI18N
+        jButton37.setText("Update Selected Item");
+        jButton37.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jButton37.setFocusable(false);
+        jButton37.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButton37.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButton37.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton37MouseClicked(evt);
+            }
+        });
+        jToolBar1.add(jButton37);
+        jToolBar1.add(jSeparator56);
+
+        jButton38.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton38.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/Adelete.png"))); // NOI18N
+        jButton38.setText("Remove Selected Item");
+        jButton38.setFocusable(false);
+        jButton38.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButton38.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButton38.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton38MouseClicked(evt);
+            }
+        });
+        jButton38.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton38ActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jButton38);
+
+        jButton40.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton40.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/confirmpackage.png"))); // NOI18N
+        jButton40.setText("Confirm Order");
+        jButton40.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton40MouseClicked(evt);
+            }
+        });
+        jButton40.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton40ActionPerformed(evt);
+            }
+        });
+
+        jButton41.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton41.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/Paynow.png"))); // NOI18N
+        jButton41.setText("Pay Now");
+        jButton41.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton41MouseClicked(evt);
+            }
+        });
+
+        jButton42.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton42.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/canceled.png"))); // NOI18N
+        jButton42.setText("Cancel");
+        jButton42.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton42MouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanelFood_order_confirmLayout = new javax.swing.GroupLayout(jPanelFood_order_confirm);
+        jPanelFood_order_confirm.setLayout(jPanelFood_order_confirmLayout);
+        jPanelFood_order_confirmLayout.setHorizontalGroup(
+            jPanelFood_order_confirmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelFood_order_confirmLayout.createSequentialGroup()
+                .addGap(6, 6, 6)
+                .addComponent(jButton40, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jButton41, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10)
+                .addComponent(jButton42, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelFood_order_confirmLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(110, 110, 110))
+        );
+        jPanelFood_order_confirmLayout.setVerticalGroup(
+            jPanelFood_order_confirmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelFood_order_confirmLayout.createSequentialGroup()
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(jPanelFood_order_confirmLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton40, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton41, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton42, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 38, Short.MAX_VALUE))
+        );
+
+        jLabel88.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel88.setText("Total Amount");
+
+        food_order_FinalAmount.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        food_order_FinalAmount.setBorder(null);
+        food_order_FinalAmount.setDisabledTextColor(new java.awt.Color(0, 0, 0));
+        food_order_FinalAmount.setEnabled(false);
+
         javax.swing.GroupLayout orderFoodLayout = new javax.swing.GroupLayout(orderFood);
         orderFood.setLayout(orderFoodLayout);
         orderFoodLayout.setHorizontalGroup(
             orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1004, Short.MAX_VALUE)
+            .addGroup(orderFoodLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(orderFoodLayout.createSequentialGroup()
+                        .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(oder_food_warning, javax.swing.GroupLayout.PREFERRED_SIZE, 471, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(orderFoodLayout.createSequentialGroup()
+                                .addComponent(jRadioButton1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jRadioButton2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jRadioButton3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jRadioButton4)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jRadioButton5)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(Foodorder_guest_id_combo, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(Foodorder_reservation_id_com, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(24, 24, 24)
+                                .addComponent(jLabel87, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jSeparator52)
+                                    .addComponent(food_order_id, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, orderFoodLayout.createSequentialGroup()
+                        .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(orderFoodLayout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(jLabel88, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jSeparator57)
+                                    .addComponent(food_order_FinalAmount, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(orderFoodLayout.createSequentialGroup()
+                                .addComponent(jScrollPane10, javax.swing.GroupLayout.PREFERRED_SIZE, 378, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addGroup(orderFoodLayout.createSequentialGroup()
+                                        .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(orderFoodLayout.createSequentialGroup()
+                                                .addComponent(jSeparator53, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jSeparator54, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                            .addGroup(orderFoodLayout.createSequentialGroup()
+                                                .addComponent(oder_food_name, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(oder_food_unit_price, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(oder_food_qty, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jSeparator55, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addGroup(orderFoodLayout.createSequentialGroup()
+                                                .addComponent(oder_food_total_price, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(10, 10, 10)
+                                                .addComponent(jButton36, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jPanelFood_order_confirm, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGap(45, 45, 45))))
         );
         orderFoodLayout.setVerticalGroup(
             orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 657, Short.MAX_VALUE)
+            .addGroup(orderFoodLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jRadioButton1)
+                        .addComponent(jRadioButton2)
+                        .addComponent(jRadioButton3)
+                        .addComponent(jRadioButton4)
+                        .addComponent(jRadioButton5)
+                        .addComponent(Foodorder_guest_id_combo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(Foodorder_reservation_id_com, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(orderFoodLayout.createSequentialGroup()
+                        .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(food_order_id, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel87))
+                        .addGap(0, 0, 0)
+                        .addComponent(jSeparator52, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(orderFoodLayout.createSequentialGroup()
+                        .addGap(9, 9, 9)
+                        .addComponent(oder_food_warning, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(orderFoodLayout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(food_order_FinalAmount, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel88))
+                        .addGap(0, 0, 0)
+                        .addComponent(jSeparator57, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(orderFoodLayout.createSequentialGroup()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(oder_food_name, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(oder_food_unit_price, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(oder_food_qty, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jButton36)
+                                .addComponent(oder_food_total_price, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, 0)
+                        .addGroup(orderFoodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(jSeparator54, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jSeparator53, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jSeparator55, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanelFood_order_confirm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane10))
+                .addContainerGap(46, Short.MAX_VALUE))
         );
 
         Catering_Base.add(orderFood, "card2");
@@ -2370,7 +3949,7 @@ public class Main_Window extends javax.swing.JFrame {
                         .addComponent(jLabel58, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 474, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(0, 15, Short.MAX_VALUE))
+                .addGap(0, 6, Short.MAX_VALUE))
         );
 
         addfoodbase.add(addfood1, "card2");
@@ -2412,7 +3991,7 @@ public class Main_Window extends javax.swing.JFrame {
                 .addGap(6, 6, 6)
                 .addComponent(FoodManagementBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(26, 26, 26)
-                .addComponent(FoodManagementBTN1, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(FoodOderBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(26, 26, 26)
                 .addComponent(FoodPackageBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -2420,7 +3999,7 @@ public class Main_Window extends javax.swing.JFrame {
                 .addGroup(Catering_and_foodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addComponent(Catering_Base, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jSeparator30, javax.swing.GroupLayout.Alignment.LEADING))
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 15, Short.MAX_VALUE))
         );
         Catering_and_foodLayout.setVerticalGroup(
             Catering_and_foodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -2429,7 +4008,7 @@ public class Main_Window extends javax.swing.JFrame {
                 .addGroup(Catering_and_foodLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(FoodManagementBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(FoodPackageBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(FoodManagementBTN1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(FoodOderBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator30, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -2437,6 +4016,30 @@ public class Main_Window extends javax.swing.JFrame {
         );
 
         Dynamic_Panel.add(Catering_and_food, "card2");
+
+        Inventory.setBackground(new java.awt.Color(255, 255, 255));
+
+        jLabel25.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
+        jLabel25.setText("Inventory");
+
+        javax.swing.GroupLayout InventoryLayout = new javax.swing.GroupLayout(Inventory);
+        Inventory.setLayout(InventoryLayout);
+        InventoryLayout.setHorizontalGroup(
+            InventoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(InventoryLayout.createSequentialGroup()
+                .addGap(404, 404, 404)
+                .addComponent(jLabel25, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(493, Short.MAX_VALUE))
+        );
+        InventoryLayout.setVerticalGroup(
+            InventoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(InventoryLayout.createSequentialGroup()
+                .addGap(238, 238, 238)
+                .addComponent(jLabel25, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(341, Short.MAX_VALUE))
+        );
+
+        Dynamic_Panel.add(Inventory, "card2");
 
         House_keeping.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -2462,29 +4065,246 @@ public class Main_Window extends javax.swing.JFrame {
 
         Dynamic_Panel.add(House_keeping, "card2");
 
-        Developers.setBackground(new java.awt.Color(255, 255, 255));
+        RoomandHall.setBackground(new java.awt.Color(255, 255, 255));
 
-        jLabel30.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
-        jLabel30.setText("developing Team");
+        jButtonAddHalls1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButtonAddHalls1.setText("Show Halls");
+        jButtonAddHalls1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButtonAddHalls1MouseClicked(evt);
+            }
+        });
+        jButtonAddHalls1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonAddHalls1ActionPerformed(evt);
+            }
+        });
 
-        javax.swing.GroupLayout DevelopersLayout = new javax.swing.GroupLayout(Developers);
-        Developers.setLayout(DevelopersLayout);
-        DevelopersLayout.setHorizontalGroup(
-            DevelopersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(DevelopersLayout.createSequentialGroup()
-                .addGap(404, 404, 404)
-                .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(352, Short.MAX_VALUE))
+        jButton16.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton16.setText("Rooms And Hall Manage");
+        jButton16.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton16MouseClicked(evt);
+            }
+        });
+
+        RoomandHallBase.setBackground(new java.awt.Color(255, 255, 255));
+        RoomandHallBase.setLayout(new java.awt.CardLayout());
+
+        addNewroom.setBackground(new java.awt.Color(255, 255, 255));
+
+        jLabel52.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel52.setText("Room ID");
+
+        jComboBoxroomBedtype.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jComboBoxroomBedtype.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select Bed Type", "Single", "Duble", "Trible", " " }));
+
+        jLabel27.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel27.setText("Room Details");
+
+        jLabel51.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel51.setText("Bed Type");
+
+        jComboBoxRoomtype.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jComboBoxRoomtype.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select Room Type", "Normal", "Standard", "Deluxe", "Luxury" }));
+
+        AddRoomTableIn.setAutoCreateRowSorter(true);
+        AddRoomTableIn.setBackground(new java.awt.Color(231, 240, 240));
+        AddRoomTableIn.setBorder(new javax.swing.border.MatteBorder(null));
+        AddRoomTableIn.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        AddRoomTableIn.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "ID", "TYPE", "BED TYPE", "PRICE"
+            }
+        ));
+        AddRoomTableIn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AddRoomTableIn.setEditingColumn(1);
+        AddRoomTableIn.setEditingRow(1);
+        AddRoomTableIn.setFillsViewportHeight(true);
+        AddRoomTableIn.setGridColor(new java.awt.Color(51, 51, 51));
+        AddRoomTableIn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                AddRoomTableInMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                AddRoomTableInMouseEntered(evt);
+            }
+        });
+        jScrollPane6.setViewportView(AddRoomTableIn);
+
+        jLabel48.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel48.setText("Room Type");
+
+        roomWarning.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        roomWarning.setForeground(new java.awt.Color(255, 0, 0));
+
+        roomIdin.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        roomIdin.setBorder(null);
+        roomIdin.setDisabledTextColor(new java.awt.Color(255, 51, 51));
+        roomIdin.setEnabled(false);
+
+        jButton26.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton26.setText("Clear");
+        jButton26.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton26MouseClicked(evt);
+            }
+        });
+
+        roomInprice.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        roomInprice.setBorder(null);
+        roomInprice.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                roomInpriceKeyPressed(evt);
+            }
+        });
+
+        jButton25.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton25.setText("Delete");
+        jButton25.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton25MouseClicked(evt);
+            }
+        });
+
+        jLabel64.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel64.setText("Bed Type");
+
+        jButton20.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton20.setText("Update");
+        jButton20.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton20MouseClicked(evt);
+            }
+        });
+
+        jButton19.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jButton19.setText("Add");
+        jButton19.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton19MouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout addNewroomLayout = new javax.swing.GroupLayout(addNewroom);
+        addNewroom.setLayout(addNewroomLayout);
+        addNewroomLayout.setHorizontalGroup(
+            addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(addNewroomLayout.createSequentialGroup()
+                .addGap(44, 44, 44)
+                .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(addNewroomLayout.createSequentialGroup()
+                        .addComponent(jLabel64, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(roomInprice, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jSeparator32, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(addNewroomLayout.createSequentialGroup()
+                        .addComponent(jLabel48, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jComboBoxRoomtype, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(addNewroomLayout.createSequentialGroup()
+                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel51, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel52, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, addNewroomLayout.createSequentialGroup()
+                                .addGap(19, 19, 19)
+                                .addComponent(jComboBoxroomBedtype, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(addNewroomLayout.createSequentialGroup()
+                                .addGap(35, 35, 35)
+                                .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jSeparator31)
+                                    .addComponent(roomIdin, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                    .addGroup(addNewroomLayout.createSequentialGroup()
+                        .addComponent(jButton19, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton20, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton25, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton26, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(roomWarning, javax.swing.GroupLayout.PREFERRED_SIZE, 381, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(37, 37, 37)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(133, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, addNewroomLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel27)
+                .addGap(245, 245, 245))
         );
-        DevelopersLayout.setVerticalGroup(
-            DevelopersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(DevelopersLayout.createSequentialGroup()
-                .addGap(238, 238, 238)
-                .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(341, Short.MAX_VALUE))
+        addNewroomLayout.setVerticalGroup(
+            addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(addNewroomLayout.createSequentialGroup()
+                .addGap(31, 31, 31)
+                .addComponent(jLabel27)
+                .addGap(2, 2, 2)
+                .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(addNewroomLayout.createSequentialGroup()
+                        .addComponent(roomWarning, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel52, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(roomIdin, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, 0)
+                        .addComponent(jSeparator31, javax.swing.GroupLayout.PREFERRED_SIZE, 5, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel48, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+                            .addComponent(jComboBoxRoomtype))
+                        .addGap(13, 13, 13)
+                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel51, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jComboBoxroomBedtype, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel64, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(addNewroomLayout.createSequentialGroup()
+                                .addComponent(roomInprice, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(4, 4, 4)
+                                .addComponent(jSeparator32, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(40, 40, 40)
+                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton19, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButton20, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButton25, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButton26, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(204, Short.MAX_VALUE))
         );
 
-        Dynamic_Panel.add(Developers, "card2");
+        RoomandHallBase.add(addNewroom, "card2");
+
+        javax.swing.GroupLayout RoomandHallLayout = new javax.swing.GroupLayout(RoomandHall);
+        RoomandHall.setLayout(RoomandHallLayout);
+        RoomandHallLayout.setHorizontalGroup(
+            RoomandHallLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(RoomandHallLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jButton16, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(19, 19, 19)
+                .addComponent(jButtonAddHalls1, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+            .addComponent(jSeparator16)
+            .addComponent(RoomandHallBase, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        RoomandHallLayout.setVerticalGroup(
+            RoomandHallLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(RoomandHallLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(RoomandHallLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jButton16, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonAddHalls1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSeparator16, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(RoomandHallBase, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        Dynamic_Panel.add(RoomandHall, "card2");
 
         Account_settings.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -3219,834 +5039,29 @@ public class Main_Window extends javax.swing.JFrame {
 
         Dynamic_Panel.add(Account_settings, "card2");
 
-        Billing_And_Report.setBackground(new java.awt.Color(255, 255, 255));
-        Billing_And_Report.setMaximumSize(new java.awt.Dimension(1007, 613));
-        Billing_And_Report.setMinimumSize(new java.awt.Dimension(1007, 613));
+        Developers.setBackground(new java.awt.Color(255, 255, 255));
 
-        jButton27.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton27.setText("Reservation Billing");
-        jButton27.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton27MouseClicked(evt);
-            }
-        });
+        jLabel30.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
+        jLabel30.setText("developing Team");
 
-        jButton29.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton29.setText("Food order Billing");
-        jButton29.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton29MouseClicked(evt);
-            }
-        });
-        jButton29.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton29ActionPerformed(evt);
-            }
-        });
-
-        jButton30.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton30.setText("Fianance and Reports");
-        jButton30.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton30MouseClicked(evt);
-            }
-        });
-
-        jButton31.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton31.setText("Statistics");
-        jButton31.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton31MouseClicked(evt);
-            }
-        });
-
-        bill_base.setBackground(new java.awt.Color(255, 255, 255));
-        bill_base.setMaximumSize(new java.awt.Dimension(1106, 554));
-        bill_base.setMinimumSize(new java.awt.Dimension(1106, 554));
-        bill_base.setLayout(new java.awt.CardLayout());
-
-        Food_order_bill.setBackground(new java.awt.Color(255, 255, 255));
-        Food_order_bill.setMaximumSize(new java.awt.Dimension(1106, 554));
-        Food_order_bill.setMinimumSize(new java.awt.Dimension(1106, 554));
-
-        javax.swing.GroupLayout Food_order_billLayout = new javax.swing.GroupLayout(Food_order_bill);
-        Food_order_bill.setLayout(Food_order_billLayout);
-        Food_order_billLayout.setHorizontalGroup(
-            Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1106, Short.MAX_VALUE)
+        javax.swing.GroupLayout DevelopersLayout = new javax.swing.GroupLayout(Developers);
+        Developers.setLayout(DevelopersLayout);
+        DevelopersLayout.setHorizontalGroup(
+            DevelopersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(DevelopersLayout.createSequentialGroup()
+                .addGap(404, 404, 404)
+                .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(352, Short.MAX_VALUE))
         );
-        Food_order_billLayout.setVerticalGroup(
-            Food_order_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 554, Short.MAX_VALUE)
+        DevelopersLayout.setVerticalGroup(
+            DevelopersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(DevelopersLayout.createSequentialGroup()
+                .addGap(238, 238, 238)
+                .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(341, Short.MAX_VALUE))
         );
 
-        bill_base.add(Food_order_bill, "card3");
-
-        Reservation_bill.setBackground(new java.awt.Color(255, 255, 255));
-        Reservation_bill.setMaximumSize(new java.awt.Dimension(1106, 554));
-        Reservation_bill.setMinimumSize(new java.awt.Dimension(1106, 554));
-
-        jSeparator37.setBackground(new java.awt.Color(0, 0, 0));
-
-        res_guest_id.setBackground(new java.awt.Color(242, 248, 249));
-        res_guest_id.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_guest_id.setBorder(null);
-        res_guest_id.setEnabled(false);
-        res_guest_id.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_guest_idKeyPressed(evt);
-            }
-        });
-
-        jLabel24.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel24.setText("Guest ID");
-
-        jSeparator38.setBackground(new java.awt.Color(0, 0, 0));
-
-        res_reservation_id.setBackground(new java.awt.Color(242, 248, 249));
-        res_reservation_id.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_reservation_id.setBorder(null);
-        res_reservation_id.setEnabled(false);
-        res_reservation_id.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_reservation_idKeyPressed(evt);
-            }
-        });
-
-        jLabel69.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel69.setText("Reservation ID");
-
-        jSeparator39.setBackground(new java.awt.Color(0, 0, 0));
-
-        res_staying_days.setBackground(new java.awt.Color(242, 248, 249));
-        res_staying_days.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_staying_days.setBorder(null);
-        res_staying_days.setEnabled(false);
-        res_staying_days.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_staying_daysKeyPressed(evt);
-            }
-        });
-
-        jLabel70.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel70.setText("Day's in stay");
-
-        jSeparator40.setBackground(new java.awt.Color(0, 0, 0));
-
-        res_basic_amount.setBackground(new java.awt.Color(242, 248, 249));
-        res_basic_amount.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_basic_amount.setBorder(null);
-        res_basic_amount.setEnabled(false);
-        res_basic_amount.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_basic_amountKeyPressed(evt);
-            }
-        });
-
-        jLabel71.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel71.setText("Reservation Amount");
-
-        jSeparator41.setBackground(new java.awt.Color(0, 0, 0));
-
-        res_guest_name.setBackground(new java.awt.Color(242, 248, 249));
-        res_guest_name.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_guest_name.setBorder(null);
-        res_guest_name.setEnabled(false);
-        res_guest_name.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_guest_nameKeyPressed(evt);
-            }
-        });
-
-        jLabel72.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel72.setText("Guest Name");
-
-        jSeparator42.setBackground(new java.awt.Color(0, 0, 0));
-
-        res_guest_address.setBackground(new java.awt.Color(242, 248, 249));
-        res_guest_address.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_guest_address.setBorder(null);
-        res_guest_address.setEnabled(false);
-        res_guest_address.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_guest_addressKeyPressed(evt);
-            }
-        });
-
-        jLabel73.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel73.setText("Guest Address");
-
-        jSeparator43.setBackground(new java.awt.Color(0, 0, 0));
-
-        res_discount.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_discount.setBorder(null);
-        res_discount.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_discountKeyPressed(evt);
-            }
-        });
-
-        jLabel74.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel74.setText("Discounts");
-
-        jSeparator44.setBackground(new java.awt.Color(0, 0, 0));
-
-        res_taxes.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_taxes.setBorder(null);
-        res_taxes.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_taxesKeyPressed(evt);
-            }
-        });
-
-        jLabel75.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel75.setText("Taxes");
-
-        jSeparator45.setBackground(new java.awt.Color(0, 0, 0));
-
-        res_advance_amount.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_advance_amount.setBorder(null);
-        res_advance_amount.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_advance_amountKeyPressed(evt);
-            }
-        });
-
-        jLabel76.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel76.setText("Advance Amount");
-
-        jSeparator46.setBackground(new java.awt.Color(0, 0, 0));
-
-        res_total_amount.setBackground(new java.awt.Color(242, 248, 249));
-        res_total_amount.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_total_amount.setBorder(null);
-        res_total_amount.setEnabled(false);
-        res_total_amount.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_total_amountKeyPressed(evt);
-            }
-        });
-
-        jLabel77.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel77.setText("Total Amount");
-
-        jSeparator47.setBackground(new java.awt.Color(0, 0, 0));
-
-        res_guest_email.setBackground(new java.awt.Color(242, 248, 249));
-        res_guest_email.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_guest_email.setBorder(null);
-        res_guest_email.setEnabled(false);
-        res_guest_email.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_guest_emailKeyPressed(evt);
-            }
-        });
-
-        jLabel78.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel78.setText("Guest Email");
-
-        jButton32.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton32.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/estimate_amount.png"))); // NOI18N
-        jButton32.setText("Calculate the sub total");
-        jButton32.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton32MouseClicked(evt);
-            }
-        });
-
-        jButton33.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton33.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/bill_print.png"))); // NOI18N
-        jButton33.setText("Print Invoice");
-        jButton33.setIconTextGap(10);
-        jButton33.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton33ActionPerformed(evt);
-            }
-        });
-
-        bill_display.setColumns(20);
-        bill_display.setRows(5);
-        jScrollPane2.setViewportView(bill_display);
-
-        reservation_bill_warning.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        reservation_bill_warning.setForeground(new java.awt.Color(255, 0, 0));
-        reservation_bill_warning.setBorder(null);
-
-        jSeparator49.setBackground(new java.awt.Color(0, 0, 0));
-
-        res_Balance_resAmount.setBackground(new java.awt.Color(242, 248, 249));
-        res_Balance_resAmount.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_Balance_resAmount.setBorder(null);
-        res_Balance_resAmount.setEnabled(false);
-        res_Balance_resAmount.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_Balance_resAmountKeyPressed(evt);
-            }
-        });
-
-        jLabel80.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel80.setText("Balance Amount");
-
-        jLabel81.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel81.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/percentage_20.png"))); // NOI18N
-
-        jLabel82.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel82.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/percentage_20.png"))); // NOI18N
-
-        jLabel83.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel83.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/Cash_inHand.png"))); // NOI18N
-
-        jLabel84.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel84.setText("Cash on Hand");
-
-        jSeparator50.setBackground(new java.awt.Color(0, 0, 0));
-
-        jLabel85.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel85.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/Cash_inHand.png"))); // NOI18N
-
-        res_Cash_on_hand.setFont(new java.awt.Font("Tahoma", 0, 16)); // NOI18N
-        res_Cash_on_hand.setBorder(null);
-        res_Cash_on_hand.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                res_Cash_on_handKeyPressed(evt);
-            }
-        });
-
-        jButton34.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton34.setIcon(new javax.swing.ImageIcon(getClass().getResource("/hotel_management_system/img/icons/gmail.png"))); // NOI18N
-        jButton34.setText("Send Invoice");
-        jButton34.setIconTextGap(10);
-
-        javax.swing.GroupLayout Reservation_billLayout = new javax.swing.GroupLayout(Reservation_bill);
-        Reservation_bill.setLayout(Reservation_billLayout);
-        Reservation_billLayout.setHorizontalGroup(
-            Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(Reservation_billLayout.createSequentialGroup()
-                .addGap(25, 25, 25)
-                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(Reservation_billLayout.createSequentialGroup()
-                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel75)
-                            .addComponent(jLabel74)
-                            .addComponent(jLabel76))
-                        .addGap(35, 35, 35)
-                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jButton32, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jSeparator45)
-                            .addGroup(Reservation_billLayout.createSequentialGroup()
-                                .addComponent(res_advance_amount)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel83, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jSeparator43)
-                            .addGroup(Reservation_billLayout.createSequentialGroup()
-                                .addComponent(res_discount)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jSeparator44, javax.swing.GroupLayout.DEFAULT_SIZE, 252, Short.MAX_VALUE)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, Reservation_billLayout.createSequentialGroup()
-                                .addComponent(res_taxes)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel81, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                    .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(reservation_bill_warning)
-                        .addGroup(Reservation_billLayout.createSequentialGroup()
-                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel24)
-                                .addComponent(jLabel72))
-                            .addGap(73, 73, 73)
-                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addComponent(jSeparator42, javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(res_guest_address, javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jSeparator41, javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(res_guest_name, javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jSeparator37, javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(res_guest_id, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGroup(Reservation_billLayout.createSequentialGroup()
-                            .addComponent(jLabel69)
-                            .addGap(53, 53, 53)
-                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jSeparator38)
-                                .addComponent(res_reservation_id)))
-                        .addComponent(jLabel73)
-                        .addGroup(Reservation_billLayout.createSequentialGroup()
-                            .addComponent(jLabel78)
-                            .addGap(76, 76, 76)
-                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(jSeparator47)
-                                .addComponent(res_guest_email, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGroup(Reservation_billLayout.createSequentialGroup()
-                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel71)
-                                .addComponent(jLabel70))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jSeparator39)
-                                .addComponent(res_staying_days)
-                                .addComponent(jSeparator40)
-                                .addComponent(res_basic_amount)))
-                        .addComponent(jLabel80)
-                        .addGroup(Reservation_billLayout.createSequentialGroup()
-                            .addComponent(jLabel77)
-                            .addGap(61, 61, 61)
-                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jSeparator49)
-                                .addComponent(res_total_amount, javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(res_Balance_resAmount, javax.swing.GroupLayout.Alignment.TRAILING)))
-                        .addComponent(jSeparator46, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(141, 141, 141)
-                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(Reservation_billLayout.createSequentialGroup()
-                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addGroup(Reservation_billLayout.createSequentialGroup()
-                                .addComponent(jButton34, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton33, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(Reservation_billLayout.createSequentialGroup()
-                                .addComponent(jLabel84)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addGroup(Reservation_billLayout.createSequentialGroup()
-                                        .addComponent(res_Cash_on_hand, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel85, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jSeparator50, javax.swing.GroupLayout.PREFERRED_SIZE, 230, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 2, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(126, 126, 126))
-        );
-        Reservation_billLayout.setVerticalGroup(
-            Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(Reservation_billLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(reservation_bill_warning, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(Reservation_billLayout.createSequentialGroup()
-                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(Reservation_billLayout.createSequentialGroup()
-                                .addGap(124, 124, 124)
-                                .addComponent(res_guest_email, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jSeparator47, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(res_reservation_id, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jSeparator38, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(8, 8, 8)
-                                .addComponent(res_staying_days, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jSeparator39, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(Reservation_billLayout.createSequentialGroup()
-                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(Reservation_billLayout.createSequentialGroup()
-                                        .addComponent(res_guest_id, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jSeparator37, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jLabel24))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(Reservation_billLayout.createSequentialGroup()
-                                        .addComponent(res_guest_name, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jSeparator41, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jLabel72))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(Reservation_billLayout.createSequentialGroup()
-                                        .addComponent(res_guest_address, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jSeparator42, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jLabel73, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(11, 11, 11)
-                                .addComponent(jLabel78, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel69, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel70)))
-                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(Reservation_billLayout.createSequentialGroup()
-                                .addGap(38, 38, 38)
-                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(res_total_amount, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel77, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jSeparator46, javax.swing.GroupLayout.PREFERRED_SIZE, 4, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel80, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(res_Balance_resAmount, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addGroup(Reservation_billLayout.createSequentialGroup()
-                                    .addComponent(res_basic_amount, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(0, 0, 0)
-                                    .addComponent(jSeparator40, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addComponent(jLabel71, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(2, 2, 2)
-                        .addComponent(jSeparator49, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(Reservation_billLayout.createSequentialGroup()
-                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(res_taxes, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel81, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(0, 0, 0)
-                                .addComponent(jSeparator44, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(Reservation_billLayout.createSequentialGroup()
-                                        .addGap(8, 8, 8)
-                                        .addComponent(res_discount, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(Reservation_billLayout.createSequentialGroup()
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addGap(0, 0, 0)
-                                .addComponent(jSeparator43, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(res_advance_amount, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel83, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(0, 0, 0)
-                                .addComponent(jSeparator45, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(Reservation_billLayout.createSequentialGroup()
-                                .addComponent(jLabel75, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel74, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(13, 13, 13)
-                                .addComponent(jLabel76, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton32, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(Reservation_billLayout.createSequentialGroup()
-                        .addComponent(jScrollPane2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel84, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel85, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(res_Cash_on_hand, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 0, 0)
-                        .addComponent(jSeparator50, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(25, 25, 25)
-                        .addGroup(Reservation_billLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton33, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton34, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap())
-        );
-
-        bill_base.add(Reservation_bill, "card2");
-
-        bill_statistic.setBackground(new java.awt.Color(255, 255, 255));
-        bill_statistic.setMaximumSize(new java.awt.Dimension(1106, 554));
-        bill_statistic.setMinimumSize(new java.awt.Dimension(1106, 554));
-
-        javax.swing.GroupLayout bill_statisticLayout = new javax.swing.GroupLayout(bill_statistic);
-        bill_statistic.setLayout(bill_statisticLayout);
-        bill_statisticLayout.setHorizontalGroup(
-            bill_statisticLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1106, Short.MAX_VALUE)
-        );
-        bill_statisticLayout.setVerticalGroup(
-            bill_statisticLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 554, Short.MAX_VALUE)
-        );
-
-        bill_base.add(bill_statistic, "card5");
-
-        finance_reports.setBackground(new java.awt.Color(255, 255, 255));
-        finance_reports.setMaximumSize(new java.awt.Dimension(1106, 554));
-        finance_reports.setMinimumSize(new java.awt.Dimension(1106, 554));
-
-        javax.swing.GroupLayout finance_reportsLayout = new javax.swing.GroupLayout(finance_reports);
-        finance_reports.setLayout(finance_reportsLayout);
-        finance_reportsLayout.setHorizontalGroup(
-            finance_reportsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1106, Short.MAX_VALUE)
-        );
-        finance_reportsLayout.setVerticalGroup(
-            finance_reportsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 554, Short.MAX_VALUE)
-        );
-
-        bill_base.add(finance_reports, "card4");
-
-        javax.swing.GroupLayout Billing_And_ReportLayout = new javax.swing.GroupLayout(Billing_And_Report);
-        Billing_And_Report.setLayout(Billing_And_ReportLayout);
-        Billing_And_ReportLayout.setHorizontalGroup(
-            Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(Billing_And_ReportLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jButton27, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jButton29, javax.swing.GroupLayout.PREFERRED_SIZE, 231, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jButton30, javax.swing.GroupLayout.PREFERRED_SIZE, 234, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jButton31, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(Billing_And_ReportLayout.createSequentialGroup()
-                .addGroup(Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jSeparator36)
-                    .addComponent(bill_base, javax.swing.GroupLayout.PREFERRED_SIZE, 1007, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
-        Billing_And_ReportLayout.setVerticalGroup(
-            Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(Billing_And_ReportLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(Billing_And_ReportLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton27, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton29, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton30, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton31, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator36, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(bill_base, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-
-        Dynamic_Panel.add(Billing_And_Report, "card2");
-
-        RoomandHall.setBackground(new java.awt.Color(255, 255, 255));
-
-        jButtonAddHalls1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButtonAddHalls1.setText("Show Halls");
-        jButtonAddHalls1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButtonAddHalls1MouseClicked(evt);
-            }
-        });
-        jButtonAddHalls1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonAddHalls1ActionPerformed(evt);
-            }
-        });
-
-        jButton16.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton16.setText("Rooms And Hall Manage");
-        jButton16.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton16MouseClicked(evt);
-            }
-        });
-
-        RoomandHallBase.setBackground(new java.awt.Color(255, 255, 255));
-        RoomandHallBase.setLayout(new java.awt.CardLayout());
-
-        addNewroom.setBackground(new java.awt.Color(255, 255, 255));
-
-        jLabel52.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel52.setText("Room ID");
-
-        jComboBoxroomBedtype.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jComboBoxroomBedtype.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select Bed Type", "Single", "Duble", "Trible", " " }));
-
-        jLabel27.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jLabel27.setText("Room Details");
-
-        jLabel51.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel51.setText("Bed Type");
-
-        jComboBoxRoomtype.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jComboBoxRoomtype.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select Room Type", "Normal", "Standard", "Deluxe", "Luxury" }));
-
-        AddRoomTableIn.setAutoCreateRowSorter(true);
-        AddRoomTableIn.setBackground(new java.awt.Color(231, 240, 240));
-        AddRoomTableIn.setBorder(new javax.swing.border.MatteBorder(null));
-        AddRoomTableIn.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        AddRoomTableIn.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "ID", "TYPE", "BED TYPE", "PRICE"
-            }
-        ));
-        AddRoomTableIn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AddRoomTableIn.setEditingColumn(1);
-        AddRoomTableIn.setEditingRow(1);
-        AddRoomTableIn.setFillsViewportHeight(true);
-        AddRoomTableIn.setGridColor(new java.awt.Color(51, 51, 51));
-        AddRoomTableIn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                AddRoomTableInMouseClicked(evt);
-            }
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                AddRoomTableInMouseEntered(evt);
-            }
-        });
-        jScrollPane6.setViewportView(AddRoomTableIn);
-
-        jLabel48.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel48.setText("Room Type");
-
-        roomWarning.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        roomWarning.setForeground(new java.awt.Color(255, 0, 0));
-
-        roomIdin.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        roomIdin.setBorder(null);
-        roomIdin.setDisabledTextColor(new java.awt.Color(255, 51, 51));
-        roomIdin.setEnabled(false);
-
-        jButton26.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton26.setText("Clear");
-        jButton26.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton26MouseClicked(evt);
-            }
-        });
-
-        roomInprice.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        roomInprice.setBorder(null);
-        roomInprice.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                roomInpriceKeyPressed(evt);
-            }
-        });
-
-        jButton25.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton25.setText("Delete");
-        jButton25.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton25MouseClicked(evt);
-            }
-        });
-
-        jLabel64.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel64.setText("Bed Type");
-
-        jButton20.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton20.setText("Update");
-        jButton20.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton20MouseClicked(evt);
-            }
-        });
-
-        jButton19.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton19.setText("Add");
-        jButton19.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton19MouseClicked(evt);
-            }
-        });
-
-        javax.swing.GroupLayout addNewroomLayout = new javax.swing.GroupLayout(addNewroom);
-        addNewroom.setLayout(addNewroomLayout);
-        addNewroomLayout.setHorizontalGroup(
-            addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(addNewroomLayout.createSequentialGroup()
-                .addGap(44, 44, 44)
-                .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(addNewroomLayout.createSequentialGroup()
-                        .addComponent(jLabel64, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(roomInprice, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jSeparator32, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(addNewroomLayout.createSequentialGroup()
-                        .addComponent(jLabel48, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jComboBoxRoomtype, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(addNewroomLayout.createSequentialGroup()
-                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel51, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel52, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, addNewroomLayout.createSequentialGroup()
-                                .addGap(19, 19, 19)
-                                .addComponent(jComboBoxroomBedtype, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(addNewroomLayout.createSequentialGroup()
-                                .addGap(35, 35, 35)
-                                .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jSeparator31)
-                                    .addComponent(roomIdin, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                    .addGroup(addNewroomLayout.createSequentialGroup()
-                        .addComponent(jButton19, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton20, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton25, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton26, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(roomWarning, javax.swing.GroupLayout.PREFERRED_SIZE, 381, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(37, 37, 37)
-                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(133, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, addNewroomLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel27)
-                .addGap(245, 245, 245))
-        );
-        addNewroomLayout.setVerticalGroup(
-            addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(addNewroomLayout.createSequentialGroup()
-                .addGap(31, 31, 31)
-                .addComponent(jLabel27)
-                .addGap(2, 2, 2)
-                .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(addNewroomLayout.createSequentialGroup()
-                        .addComponent(roomWarning, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel52, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(roomIdin, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, 0)
-                        .addComponent(jSeparator31, javax.swing.GroupLayout.PREFERRED_SIZE, 5, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel48, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
-                            .addComponent(jComboBoxRoomtype))
-                        .addGap(13, 13, 13)
-                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel51, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jComboBoxroomBedtype, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel64, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(addNewroomLayout.createSequentialGroup()
-                                .addComponent(roomInprice, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(4, 4, 4)
-                                .addComponent(jSeparator32, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(40, 40, 40)
-                        .addGroup(addNewroomLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton19, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton20, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton25, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton26, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(204, Short.MAX_VALUE))
-        );
-
-        RoomandHallBase.add(addNewroom, "card2");
-
-        javax.swing.GroupLayout RoomandHallLayout = new javax.swing.GroupLayout(RoomandHall);
-        RoomandHall.setLayout(RoomandHallLayout);
-        RoomandHallLayout.setHorizontalGroup(
-            RoomandHallLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(RoomandHallLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jButton16, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(19, 19, 19)
-                .addComponent(jButtonAddHalls1, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-            .addComponent(jSeparator16)
-            .addComponent(RoomandHallBase, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
-        RoomandHallLayout.setVerticalGroup(
-            RoomandHallLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(RoomandHallLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(RoomandHallLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jButton16, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButtonAddHalls1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator16, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(RoomandHallBase, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        Dynamic_Panel.add(RoomandHall, "card2");
-
-        time_lbl.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
-        time_lbl.setForeground(new java.awt.Color(255, 255, 255));
-        time_lbl.setText("00:00:00");
+        Dynamic_Panel.add(Developers, "card2");
 
         javax.swing.GroupLayout bgLayout = new javax.swing.GroupLayout(bg);
         bg.setLayout(bgLayout);
@@ -5086,9 +6101,17 @@ public class Main_Window extends javax.swing.JFrame {
         txt_dynamic_title_bar.setText("Food & Catering - Adding New Foods");
     }//GEN-LAST:event_AddnewFoodBTNMouseClicked
 
-    private void FoodManagementBTN1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_FoodManagementBTN1MouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_FoodManagementBTN1MouseClicked
+    private void FoodOderBTNMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_FoodOderBTNMouseClicked
+        // TODO add your handling code here:orderFood
+        Catering_Base.removeAll();
+        Catering_Base.removeAll();
+        Catering_Base.repaint();
+        Catering_Base.revalidate();
+        Catering_Base.add(orderFood);
+        Catering_Base.repaint();
+        Catering_Base.revalidate();
+        txt_dynamic_title_bar.setText("Food & Catering - Oder foods");
+    }//GEN-LAST:event_FoodOderBTNMouseClicked
 
     private void jComboBoxfoodmenuMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jComboBoxfoodmenuMouseClicked
         if (jComboBoxfoodmenu.getSelectedIndex() == 0) {
@@ -5182,7 +6205,7 @@ public class Main_Window extends javax.swing.JFrame {
             try {
                 int index = GuestIdTable.getSelectedRow();  //i changed the editing colume in jetable
                 String Food_ID = (GuestIdTable.getModel().getValueAt(index, 0).toString());
-              //  BillGuestID.setText(Food_ID);
+                //  BillGuestID.setText(Food_ID);
 
                 String paId = null;
                 String pakageId = jComboBoxPackage.getSelectedItem().toString();
@@ -5208,7 +6231,7 @@ public class Main_Window extends javax.swing.JFrame {
                 if (rs.next()) {
                     double pPrice = rs.getDouble("price");
                     String outPrice = String.valueOf(pPrice);
-              ///      BillPriceInput.setText(outPrice);
+                    ///      BillPriceInput.setText(outPrice);
                     Dynamic_Panel.removeAll();
                     Dynamic_Panel.removeAll();
                     Dynamic_Panel.repaint();
@@ -5341,12 +6364,12 @@ public class Main_Window extends javax.swing.JFrame {
             Reservation_Guest_Id_in.setText(Rguest_id);
             ReservationWarning.setText("");
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null,e.getMessage());
+            JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }//GEN-LAST:event_GuestIdTable_reservationMouseClicked
 
     private void GuestIdTable_reservationMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_GuestIdTable_reservationMouseEntered
-       try {
+        try {
             String qry = "select `guest_id`,`guest_name` from guest order by guest_id desc";
             ps = conn.prepareStatement(qry);
             rs = ps.executeQuery();
@@ -5361,8 +6384,8 @@ public class Main_Window extends javax.swing.JFrame {
     }//GEN-LAST:event_ViewBookedRoomsMouseClicked
 
     private void ViewBookedRoomsMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ViewBookedRoomsMouseEntered
-       //select * from room inner join reservation on room.id = reservation.room_id;
-       try {
+        //select * from room inner join reservation on room.id = reservation.room_id;
+        try {
             String qry = "select * from room inner join reservation on room.id = reservation.room_id";
             ps = conn.prepareStatement(qry);
             rs = ps.executeQuery();
@@ -5387,39 +6410,40 @@ public class Main_Window extends javax.swing.JFrame {
             Reservation_Price.setText(price);
             ReservationWarning.setText("");
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null,e.getMessage());
+            JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }//GEN-LAST:event_ReservationRoomAvbleMouseClicked
 
     private void ReservationRoomAvbleMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ReservationRoomAvbleMouseEntered
         try {
-            String sql="select id,type,bedtype,price from room left join reservation on id=room_id where room_id is null";
+            String sql = "select id,type,bedtype,price from room left join reservation on id=room_id where room_id is null";
             ps = conn.prepareStatement(sql);
             rs = ps.executeQuery();
             ReservationRoomAvble.setModel(DbUtils.resultSetToTableModel(rs));
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null,e.getMessage());
+            JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }//GEN-LAST:event_ReservationRoomAvbleMouseEntered
 
     private void reserCountBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_reserCountBtnMouseClicked
 
-       java.util.Date d1 = DateIn.getDate();
-       java.util.Date d2 = DateOut.getDate();
-       
-       long days1= (d1.getTime()/(1000*60*60*24));
-       long days2= (d2.getTime()/(1000*60*60*24));
-       long days = days1-days2;
-       
-       if(days<0)
-           days*=-1;
-       resrevation_staying_days.setText(Long.toString(days));
-       
+        java.util.Date d1 = DateIn.getDate();
+        java.util.Date d2 = DateOut.getDate();
+
+        long days1 = (d1.getTime() / (1000 * 60 * 60 * 24));
+        long days2 = (d2.getTime() / (1000 * 60 * 60 * 24));
+        long days = days1 - days2;
+
+        if (days < 0) {
+            days *= -1;
+        }
+        resrevation_staying_days.setText(Long.toString(days));
+
     }//GEN-LAST:event_reserCountBtnMouseClicked
 
     private void jButton28MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton28MouseClicked
-       clearing_Reservation_feilds();
-       reservation_autoID();
+        clearing_Reservation_feilds();
+        reservation_autoID();
     }//GEN-LAST:event_jButton28MouseClicked
 
     private void jButton18ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton18ActionPerformed
@@ -5495,9 +6519,9 @@ public class Main_Window extends javax.swing.JFrame {
     }//GEN-LAST:event_res_guest_addressKeyPressed
 
     private void res_discountKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_res_discountKeyPressed
-       char c = evt.getKeyChar(); //to validate the user input only allowed digits letters.
-       int count = res_discount.getText().length();
-        if (evt.getKeyChar() >= '0' && evt.getKeyChar() <= '9' && count <2 || Character.isISOControl(c)) {
+        char c = evt.getKeyChar(); //to validate the user input only allowed digits letters.
+        int count = res_discount.getText().length();
+        if (evt.getKeyChar() >= '0' && evt.getKeyChar() <= '9' && count < 2 || Character.isISOControl(c)) {
             res_discount.setEditable(true);
             reservation_bill_warning.setText("");
         } else {
@@ -5519,10 +6543,10 @@ public class Main_Window extends javax.swing.JFrame {
     }//GEN-LAST:event_res_discountKeyPressed
 
     private void res_taxesKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_res_taxesKeyPressed
-       char c = evt.getKeyChar(); //to validate the user input only allowed alphebets letters.
-       int count = res_taxes.getText().length();
-       
-        if (evt.getKeyChar() >= '0' && evt.getKeyChar() <= '9' && count <2 || Character.isISOControl(c)) {
+        char c = evt.getKeyChar(); //to validate the user input only allowed alphebets letters.
+        int count = res_taxes.getText().length();
+
+        if (evt.getKeyChar() >= '0' && evt.getKeyChar() <= '9' && count < 2 || Character.isISOControl(c)) {
             res_taxes.setEditable(true);
             reservation_bill_warning.setText("");
         } else {
@@ -5541,12 +6565,35 @@ public class Main_Window extends javax.swing.JFrame {
                 reservation_bill_warning.setText("");
             }
         }
-        
-        
+
+
     }//GEN-LAST:event_res_taxesKeyPressed
 
     private void res_advance_amountKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_res_advance_amountKeyPressed
-        // TODO add your handling code here:
+        char c = evt.getKeyChar(); //to validate the user input only allowed digits letters.
+
+        if (evt.getKeyChar() >= '0' && evt.getKeyChar() <= '9' || Character.isISOControl(c)) {
+            res_advance_amount.setEditable(true);
+            reservation_bill_warning.setText("");
+        } else {
+            res_advance_amount.setEditable(false);
+            reservation_bill_warning.setText("Allowed only digits ..(0-9) ");
+        }
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (res_advance_amount.getText().isEmpty()) {
+                res_advance_amount.setBackground(new Color(255, 255, 255));
+                res_Cash_on_hand.requestFocus();
+                res_Cash_on_hand.setBackground(new Color(197, 232, 240));
+                reservation_bill_warning.setText("With out paid Advance amount");
+                getReservationTotal();
+            } else {
+                res_advance_amount.setBackground(new Color(255, 255, 255));
+                res_Cash_on_hand.requestFocus();
+                res_Cash_on_hand.setBackground(new Color(197, 232, 240));
+                reservation_bill_warning.setText("");
+                getReservationTotal();
+            }
+        }
     }//GEN-LAST:event_res_advance_amountKeyPressed
 
     private void res_total_amountKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_res_total_amountKeyPressed
@@ -5562,7 +6609,7 @@ public class Main_Window extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton29ActionPerformed
 
     private void jButton32MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton32MouseClicked
-       getReservationTotal();
+        getReservationTotal();
     }//GEN-LAST:event_jButton32MouseClicked
 
     private void res_Balance_resAmountKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_res_Balance_resAmountKeyPressed
@@ -5570,12 +6617,606 @@ public class Main_Window extends javax.swing.JFrame {
     }//GEN-LAST:event_res_Balance_resAmountKeyPressed
 
     private void res_Cash_on_handKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_res_Cash_on_handKeyPressed
-        // TODO add your handling code here:
+        char c = evt.getKeyChar(); //to validate the user input only allowed digits letters.
+
+        if (evt.getKeyChar() >= '0' && evt.getKeyChar() <= '9' || Character.isISOControl(c)) {
+            res_Cash_on_hand.setEditable(true);
+            reservation_bill_warning.setText("");
+        } else {
+            res_Cash_on_hand.setEditable(false);
+            reservation_bill_warning.setText("Allowed only digits ..(0-9) ");
+        }
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (res_Cash_on_hand.getText().isEmpty()) {
+                res_Cash_on_hand.requestFocus();
+                res_Cash_on_hand.setBackground(new Color(197, 232, 240));
+                reservation_bill_warning.setText("Please fillout the cash feild...!");
+
+            } else {
+                res_Cash_on_hand.setBackground(new Color(255, 255, 255));
+                res_Cash_on_hand.requestFocus();
+                reservation_bill_warning.setText("");
+                setResBillDisplay();
+            }
+        }
     }//GEN-LAST:event_res_Cash_on_handKeyPressed
 
     private void jButton33ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton33ActionPerformed
-        // TODO add your handling code here:
+        if (!bill_display.getText().equals("")) {
+            try {
+                boolean complete = bill_display.print();
+                if (complete) {
+                    reservation_bill_warning.setText("Done Printing");
+                    insert_ResBill();
+                } else {
+                    reservation_bill_warning.setText("Printing.....");
+                }
+            } catch (PrinterException | HeadlessException e) {
+                reservation_bill_warning.setText("Print Error: " + e.getMessage());
+            }
+        } else {
+            reservation_bill_warning.setText("Please give the cash amount and press enter!");
+        }
+
     }//GEN-LAST:event_jButton33ActionPerformed
+
+    private void res_bill_idKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_res_bill_idKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_res_bill_idKeyPressed
+
+    private void jLabel85MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel85MouseClicked
+        setResBillDisplay();
+    }//GEN-LAST:event_jLabel85MouseClicked
+
+    private void jButton34MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton34MouseClicked
+        //SEND RESERVATION BILL TO GUEST EMAIL ADDRESS.
+        SendEmail se = new SendEmail();
+
+        se.setCompany_Email("gamagehotel7@gmail.com");
+        se.setC_password("GAMAGE@nest");
+        se.setGuest_email(res_guest_email.getText());
+        se.setE_subject("Gamage Nest & Rest Reservation Bill");
+        se.setE_message(bill_display.getText());
+
+        se.start();
+    }//GEN-LAST:event_jButton34MouseClicked
+
+    private void jButton35MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton35MouseClicked
+        deleteReservationing();
+        reservation_autoID();
+    }//GEN-LAST:event_jButton35MouseClicked
+
+    private void ViewFooditem_oderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ViewFooditem_oderMouseClicked
+        // TO set the name and price into the text feilds
+        try {
+            int index = ViewFooditem_oder.getSelectedRow();  //i changed the editing colume in jetable
+            String foodnm = (ViewFooditem_oder.getModel().getValueAt(index, 1).toString());
+            String unitprice = (ViewFooditem_oder.getModel().getValueAt(index, 2).toString());
+            oder_food_name.setText(foodnm);
+            oder_food_unit_price.setText(unitprice);
+            oder_food_qty.requestFocus();
+            oder_food_qty.setBackground(new Color(197, 232, 240));
+            oder_food_warning.setText("please select type the quantity");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
+    }//GEN-LAST:event_ViewFooditem_oderMouseClicked
+
+    private void ViewFooditem_oderMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ViewFooditem_oderMouseEntered
+
+    }//GEN-LAST:event_ViewFooditem_oderMouseEntered
+
+    private void jRadioButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jRadioButton2ActionPerformed
+
+    private void jRadioButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jRadioButton1MouseClicked
+        try {
+            String type = "Breakfast"; //
+            String qry = "select `id`,`name`,`price` from food where `type` ='" + type + "'";
+            ps = conn.prepareStatement(qry);
+            rs = ps.executeQuery();
+            ViewFooditem_oder.setModel(DbUtils.resultSetToTableModel(rs));
+        } catch (SQLException | NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+    }//GEN-LAST:event_jRadioButton1MouseClicked
+
+    private void jRadioButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jRadioButton2MouseClicked
+        try {
+            String type = "Lunch"; //
+            String qry = "select `id`,`name`,`price` from food where `type` ='" + type + "'";
+            ps = conn.prepareStatement(qry);
+            rs = ps.executeQuery();
+            ViewFooditem_oder.setModel(DbUtils.resultSetToTableModel(rs));
+        } catch (SQLException | NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+    }//GEN-LAST:event_jRadioButton2MouseClicked
+
+    private void jRadioButton3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jRadioButton3MouseClicked
+        try {
+            String type = "Dinner"; //
+            String qry = "select `id`,`name`,`price` from food where `type` ='" + type + "'";
+            ps = conn.prepareStatement(qry);
+            rs = ps.executeQuery();
+            ViewFooditem_oder.setModel(DbUtils.resultSetToTableModel(rs));
+        } catch (SQLException | NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+    }//GEN-LAST:event_jRadioButton3MouseClicked
+
+    private void jRadioButton4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jRadioButton4MouseClicked
+        try {
+            String type = "Drinks and Bevarage"; //
+            String qry = "select `id`,`name`,`price` from food where `type` ='" + type + "'";
+            ps = conn.prepareStatement(qry);
+            rs = ps.executeQuery();
+            ViewFooditem_oder.setModel(DbUtils.resultSetToTableModel(rs));
+        } catch (SQLException | NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+    }//GEN-LAST:event_jRadioButton4MouseClicked
+
+    private void jRadioButton5MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jRadioButton5MouseClicked
+        try {
+            String qry = "select `id`,`name`,`price` from food";
+            ps = conn.prepareStatement(qry);
+            rs = ps.executeQuery();
+            ViewFooditem_oder.setModel(DbUtils.resultSetToTableModel(rs));
+        } catch (SQLException | NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+    }//GEN-LAST:event_jRadioButton5MouseClicked
+
+    private void jRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jRadioButton1ActionPerformed
+
+    private void ViewFooditem_cardMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ViewFooditem_cardMouseClicked
+        jToolBar1.setVisible(true);
+        DefaultTableModel mode1 = (DefaultTableModel) ViewFooditem_card.getModel();
+        int i = ViewFooditem_card.getSelectedRow();
+        oder_food_name.setText(mode1.getValueAt(i, 0).toString());
+        oder_food_qty.setText(mode1.getValueAt(i, 1).toString());
+        oder_food_unit_price.setText(mode1.getValueAt(i, 2).toString());
+        oder_food_total_price.setText(mode1.getValueAt(i, 3).toString());
+    }//GEN-LAST:event_ViewFooditem_cardMouseClicked
+
+    private void ViewFooditem_cardMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ViewFooditem_cardMouseEntered
+        // TODO add your handling code here:
+    }//GEN-LAST:event_ViewFooditem_cardMouseEntered
+
+    private void oder_food_qtyKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_oder_food_qtyKeyPressed
+        char c = evt.getKeyChar();
+        if (evt.getKeyChar() >= '0' && evt.getKeyChar() <= '9' || Character.isISOControl(c)) {
+            oder_food_qty.setEditable(true);
+            oder_food_warning.setText("");
+        } else {
+            oder_food_qty.setEditable(false);
+            oder_food_warning.setText("digits only allowed (1 - 9)");
+            oder_food_qty.requestFocus();
+        }
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            set_oder_Sub_total();
+            oder_food_qty.setBackground(Color.white);
+        } else if (evt.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+            oder_food_total_price.setText("");
+        }
+    }//GEN-LAST:event_oder_food_qtyKeyPressed
+
+    private void oder_food_qtyFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_oder_food_qtyFocusGained
+        oder_food_qty.setText("");
+    }//GEN-LAST:event_oder_food_qtyFocusGained
+
+    public void insertTempOder() {
+        try {                                                                                                         //,`validitiy`
+            ps = conn.prepareStatement("INSERT INTO food_oder(`oder_id`,`guest_id`,`resrvation_id`,`items`,`qty`,`price`,`tatal`,`order_date`,`time`)values(?,?,?,?,?,?,?,?,?)");
+            ps.setString(1, food_order_id.getText());
+            ps.setString(2, Foodorder_guest_id_combo.getSelectedItem().toString());
+            ps.setString(3, Foodorder_reservation_id_com.getSelectedItem().toString());
+            ps.setString(4, oder_food_name.getText());
+            ps.setString(5, oder_food_qty.getText());
+            ps.setString(6, oder_food_unit_price.getText());
+            ps.setString(7, oder_food_total_price.getText());
+            ps.setString(8, DateLbl.getText());
+            ps.setString(9, time_lbl.getText());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
+    }
+    private void jButton36MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton36MouseClicked
+        if (Foodorder_guest_id_combo.getSelectedIndex() == 0) {
+            oder_food_warning.setText("Plese select the the guest id!");
+            Foodorder_guest_id_combo.requestFocus();
+        } else if ("".equals(oder_food_total_price.getText())) {
+            oder_food_warning.setText("Plese set the quantity and press enter!");
+        } else {
+            if (!"".equals(oder_food_qty.getText())) {
+                insertTempOder();
+
+                foododeritemName.add(oder_food_name.getText());
+                foododerquantity.add(oder_food_qty.getText());
+                foododerItemPrice.add(oder_food_unit_price.getText());
+                DefaultTableModel mode1 = (DefaultTableModel) ViewFooditem_card.getModel();
+                mode1.addRow(new Object[]{
+                    oder_food_name.getText(),
+                    oder_food_qty.getText(),
+                    oder_food_unit_price.getText(),
+                    oder_food_total_price.getText()}
+                );
+
+                //food_order_FinalAmount
+                int numrow = ViewFooditem_card.getRowCount();
+                double tot = 0;
+                for (int i = 0; i < numrow; i++) {
+                    double val = Double.valueOf(ViewFooditem_card.getValueAt(i, 3).toString());
+                    tot += val;
+                }
+
+                food_order_FinalAmount.setText(Double.toString(tot));
+
+                oder_food_name.setText("");
+                oder_food_qty.setText("");
+                oder_food_total_price.setText("");
+                oder_food_unit_price.setText("");
+                oder_food_warning.setText("");
+                jPanelFood_order_confirm.setVisible(true);
+            } else {
+                oder_food_warning.setText("Plese select the food item on table!");
+            }
+        }
+
+    }//GEN-LAST:event_jButton36MouseClicked
+
+    private void jButton38ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton38ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton38ActionPerformed
+    static FOder fOder = new FOder();
+    Double bHeight = 0.0;
+
+    /**
+     *
+     * @param pj
+     * @return
+     */
+    public PageFormat getPageFormat(PrinterJob pj) {
+
+        PageFormat pf = pj.defaultPage();
+        Paper paper = pf.getPaper();
+
+        double bodyHeight = bHeight;
+        double headerHeight = 5.0;
+        double footerHeight = 5.0;
+        double width = cm_to_pp(8);
+        double height = cm_to_pp(headerHeight + bodyHeight + footerHeight);
+        paper.setSize(width, height);
+        paper.setImageableArea(0, 10, width, height - cm_to_pp(1));
+
+        pf.setOrientation(PageFormat.PORTRAIT);
+        pf.setPaper(paper);
+
+        return pf;
+    }
+
+    protected static double cm_to_pp(double cm) {
+        return toPPI(cm * 0.393600787);
+    }
+
+    protected static double toPPI(double inch) {
+        return inch * 72d;
+    }
+
+    public class BillPrintable implements Printable {
+
+        @Override
+        public int print(Graphics graphics, PageFormat pageFormat, int pageIndex)
+                throws PrinterException {
+
+            int r = foododeritemName.size();
+            ImageIcon icon = new ImageIcon("src/hotel_management_system/sjnLogo.png");
+            int result = NO_SUCH_PAGE;
+            if (pageIndex == 0) {
+
+                Graphics2D g2d = (Graphics2D) graphics;
+                double width = pageFormat.getImageableWidth();
+                g2d.translate((int) pageFormat.getImageableX(), (int) pageFormat.getImageableY());
+
+                //  FontMetrics metrics=g2d.getFontMetrics(new Font("Arial",Font.BOLD,7));
+                try {
+                    int y = 20;
+                    int yShift = 10;
+                    int headerRectHeight = 15;
+                    // int headerRectHeighta=40;
+
+                    g2d.setFont(new Font("Monospaced", Font.PLAIN, 9));
+                    g2d.drawImage(icon.getImage(), 70, 70, 70, 30, rootPane);
+                    y += yShift + 30;
+                    g2d.drawString("-------------------------------------", 12, y);
+                    y += yShift;
+                    g2d.drawString("         Food Order       ", 12, y);
+                    y += yShift;
+                    g2d.drawString("   Gamage Nest And Rest ", 12, y);
+                    y += yShift;
+                    g2d.drawString("   Gadduwa road, miriswatta ", 12, y);
+                    y += yShift;
+                    g2d.drawString("   Kamburupitiya ", 12, y);
+                    y += yShift;
+                    g2d.drawString("         0713288376      ", 12, y);
+                    y += yShift;
+                    g2d.drawString("-------------------------------------", 12, y);
+                    y += headerRectHeight;
+
+                    g2d.drawString(" Item Name                  Quantity   ", 10, y);
+                    y += yShift;
+                    g2d.drawString("-------------------------------------", 10, y);
+                    y += headerRectHeight;
+
+                    for (int s = 0; s < r; s++) {
+                        g2d.drawString(" " + foododeritemName.get(s) + "               " + foododerquantity.get(s) + "", 10, y);
+                        y += yShift;
+
+                    }
+
+                    g2d.drawString("*************************************", 10, y);
+                    y += yShift;
+                    g2d.drawString("       Please make it fast            ", 10, y);
+                    y += yShift;
+                    g2d.drawString("*************************************", 10, y);
+                    y += yShift;
+                    g2d.drawString("       SOFTWARE BY:SUJAN          ", 10, y);
+                    y += yShift;
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                result = PAGE_EXISTS;
+            }
+            return result;
+        }
+    }
+
+
+    private void jButton40MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton40MouseClicked
+        try {//
+            String inAmt = food_order_FinalAmount.getText();
+            double inAmtis = Double.parseDouble(inAmt);
+            ps = conn.prepareStatement("INSERT INTO `foodsaleincome`(`guest_id`,`date`,`amount`)values(?,?,?)");
+            ps.setString(1, Foodorder_guest_id_combo.getSelectedItem().toString());
+            ps.setString(2, DateLbl.getText());
+            ps.setDouble(3, inAmtis);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
+
+        try {
+            UpdateQuery = "UPDATE `food_oder` SET `validitiy`=? WHERE `guest_id`='"
+                    + Foodorder_guest_id_combo.getSelectedItem().toString()
+                    + "' and `oder_id`='" + food_order_id.getText() + "'";
+            ps = conn.prepareStatement(UpdateQuery);
+            ps.setString(1, "true");
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
+        PrinterJob pj = PrinterJob.getPrinterJob();
+        pj.setPrintable(new BillPrintable(), getPageFormat(pj));
+        try {
+            pj.print();
+
+        } catch (PrinterException ex) {
+            ex.printStackTrace();
+        }
+    }//GEN-LAST:event_jButton40MouseClicked
+
+    private void jButton41MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton41MouseClicked
+        int numrow = ViewFooditem_card.getRowCount();
+        if (numrow > 0) {
+            display_foodOderBilling();
+        } else {
+            oder_food_warning.setText("Please check the card ");
+        }
+    }//GEN-LAST:event_jButton41MouseClicked
+
+    private void jButton42MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton42MouseClicked
+
+        delete_food_oder_temp();
+        Foodorder_guest_id_combo.setSelectedIndex(0);
+        Foodorder_reservation_id_com.setSelectedIndex(0);
+        food_order_FinalAmount.setText("");
+
+        DefaultTableModel mode1 = (DefaultTableModel) ViewFooditem_oder.getModel();
+        while (mode1.getRowCount() > 0) {
+            for (int i = 0; i < mode1.getRowCount(); i++) {
+                mode1.removeRow(i);
+            }
+        }
+
+        DefaultTableModel mode2 = (DefaultTableModel) ViewFooditem_card.getModel();
+        while (mode2.getRowCount() > 0) {
+            for (int i = 0; i < mode2.getRowCount(); i++) {
+                mode2.removeRow(i);
+            }
+        }
+        oder_food_warning.setText("");
+        oder_food_name.setText("");
+        oder_food_qty.setText("");
+        oder_food_total_price.setText("");
+        oder_food_unit_price.setText("");
+        buttonGroup1Food_order.clearSelection();
+        FOOD_ORDERautoID();
+
+    }//GEN-LAST:event_jButton42MouseClicked
+
+    private void jButton37MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton37MouseClicked
+        DefaultTableModel mode1 = (DefaultTableModel) ViewFooditem_card.getModel();
+        int i = ViewFooditem_card.getSelectedRow();
+        if (i >= 0) {
+            mode1.setValueAt(oder_food_name.getText(), i, 0);
+            mode1.setValueAt(oder_food_qty.getText(), i, 1);
+            mode1.setValueAt(oder_food_unit_price.getText(), i, 2);
+            mode1.setValueAt(oder_food_total_price.getText(), i, 3);
+            oder_food_warning.setText("");
+            oder_food_name.setText("");
+            oder_food_qty.setText("");
+            oder_food_total_price.setText("");
+            oder_food_unit_price.setText("");
+        } else {
+            oder_food_warning.setText("Something went wrrong please check the card!");
+        }
+
+    }//GEN-LAST:event_jButton37MouseClicked
+
+    private void jButton38MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton38MouseClicked
+        int i = ViewFooditem_card.getSelectedRow();
+        DefaultTableModel mode1 = (DefaultTableModel) ViewFooditem_card.getModel();
+        if (i >= 0) {
+            mode1.removeRow(i);
+            oder_food_warning.setText("");
+            oder_food_name.setText("");
+            oder_food_qty.setText("");
+            oder_food_total_price.setText("");
+            oder_food_unit_price.setText("");
+            jToolBar1.setVisible(false);
+        } else {
+            oder_food_warning.setText("Somthing went wrrong please check the card");
+        }
+    }//GEN-LAST:event_jButton38MouseClicked
+
+    private void bgMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_bgMouseDragged
+//        int x = evt.getXOnScreen();
+//        int y = evt.getYOnScreen();
+//        this.setLocation(x - this.xMouse, y - this.yMouse);
+    }//GEN-LAST:event_bgMouseDragged
+
+    private void jButton40ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton40ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton40ActionPerformed
+
+    private void food_bill_idKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_food_bill_idKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_food_bill_idKeyPressed
+
+    private void foodbill_Cash_on_handKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_foodbill_Cash_on_handKeyPressed
+        char c = evt.getKeyChar(); //to validate the user input only allowed digits letters.
+        int count = foodbill_Cash_on_hand.getText().length();
+        if (evt.getKeyChar() >= '0' && evt.getKeyChar() <= '9' && count < 2 || Character.isISOControl(c)) {
+            foodbill_Cash_on_hand.setEditable(true);
+            food_oder_bill_warning.setText("");
+        } else {
+            foodbill_Cash_on_hand.setEditable(false);
+            food_oder_bill_warning.setText("Allowed only digits ");
+        }
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (foodbill_Cash_on_hand.getText().isEmpty()) {
+                foodbill_Cash_on_hand.requestFocus();
+                foodbill_Cash_on_hand.setBackground(new Color(197, 232, 240));
+                food_oder_bill_warning.setText("Please fillout the amount feild...");
+            } else {
+                double cash = Double.parseDouble(foodbill_Cash_on_hand.getText());
+                double amd = Double.parseDouble(foodbill_amount.getText());
+                double balance = cash - amd;
+                foodbill_balance.setText(String.valueOf(balance));
+                foodbill_Cash_on_hand.setBackground(new Color(255, 255, 255));
+                food_oder_bill_warning.setText("");
+                //want to call food order display method
+            }
+        }
+    }//GEN-LAST:event_foodbill_Cash_on_handKeyPressed
+
+    private void jButton39MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton39MouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton39MouseClicked
+
+    private void jButton43ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton43ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton43ActionPerformed
+
+    private void jLabel91MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel91MouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jLabel91MouseClicked
+
+    private void food_bill_guest_idKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_food_bill_guest_idKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_food_bill_guest_idKeyPressed
+
+    private void foodbill_guest_nameKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_foodbill_guest_nameKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_foodbill_guest_nameKeyPressed
+
+    private void foodbill_guest_addressKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_foodbill_guest_addressKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_foodbill_guest_addressKeyPressed
+
+    private void foodbill_amountKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_foodbill_amountKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_foodbill_amountKeyPressed
+
+    private void foodbill_balanceKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_foodbill_balanceKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_foodbill_balanceKeyPressed
+
+    private void foodbill_discountKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_foodbill_discountKeyPressed
+        char c = evt.getKeyChar(); //to validate the user input only allowed digits letters.
+        int count = foodbill_discount.getText().length();
+        if (evt.getKeyChar() >= '0' && evt.getKeyChar() <= '9' && count < 2 || Character.isISOControl(c)) {
+            foodbill_discount.setEditable(true);
+            food_oder_bill_warning.setText("");
+        } else {
+            foodbill_discount.setEditable(false);
+            food_oder_bill_warning.setText("Allowed only numbers Discount percentage less than 100% ");
+        }
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (foodbill_discount.getText().isEmpty()) {
+                foodbill_discount.requestFocus();
+                foodbill_discount.setBackground(new Color(197, 232, 240));
+                food_oder_bill_warning.setText("Please fillout the Discount");
+            } else {
+                double fooddis = Double.parseDouble(foodbill_discount.getText());
+                double amd = Double.parseDouble(foodbill_amount.getText());
+                double totals = amd - (amd * fooddis / 100);
+                foodbill_amount.setText(String.valueOf(totals));
+
+                foodbill_discount.setBackground(new Color(255, 255, 255));
+                foodbill_Cash_on_hand.requestFocus();
+                foodbill_Cash_on_hand.setBackground(new Color(197, 232, 240));
+                food_oder_bill_warning.setText("");
+            }
+        }
+    }//GEN-LAST:event_foodbill_discountKeyPressed
+
+    private void foodbill_taxesKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_foodbill_taxesKeyPressed
+        char c = evt.getKeyChar(); //to validate the user input only allowed alphebets letters.
+        int count = foodbill_taxes.getText().length();
+
+        if (evt.getKeyChar() >= '0' && evt.getKeyChar() <= '9' && count < 2 || Character.isISOControl(c)) {
+            foodbill_taxes.setEditable(true);
+            food_oder_bill_warning.setText("");
+        } else {
+            foodbill_taxes.setEditable(false);
+            food_oder_bill_warning.setText("Allowed only numbers and Taxes less than 100%");
+        }
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (foodbill_taxes.getText().isEmpty()) {
+                foodbill_taxes.requestFocus();
+                foodbill_taxes.setBackground(new Color(197, 232, 240));
+                food_oder_bill_warning.setText("Please fillout the TAX");
+            } else {
+                double foodbltax = Double.parseDouble(foodbill_taxes.getText());
+                double amd = Double.parseDouble(foodbill_amount.getText());
+                double totals = amd + (amd * foodbltax / 100);
+                foodbill_amount.setText(String.valueOf(totals));
+
+                foodbill_taxes.setBackground(new Color(255, 255, 255));
+                foodbill_discount.requestFocus();
+                foodbill_discount.setBackground(new Color(197, 232, 240));
+                food_oder_bill_warning.setText("");
+            }
+        }
+    }//GEN-LAST:event_foodbill_taxesKeyPressed
 
     public static void main(String args[]) {
 
@@ -5611,12 +7252,14 @@ public class Main_Window extends javax.swing.JFrame {
     public static javax.swing.JPanel Dynamic_Panel;
     private javax.swing.JPanel Dynamic_title_bar;
     private javax.swing.JButton FoodManagementBTN;
-    private javax.swing.JButton FoodManagementBTN1;
+    private javax.swing.JButton FoodOderBTN;
     private javax.swing.JButton FoodPackageBTN;
     public static javax.swing.JLabel FoodWarningText;
     public static javax.swing.JPanel Food_management;
     public static javax.swing.JPanel Food_order_bill;
     public static javax.swing.JLabel Foodmenulableout;
+    public static javax.swing.JComboBox<String> Foodorder_guest_id_combo;
+    public static javax.swing.JComboBox<String> Foodorder_reservation_id_com;
     public static javax.swing.JPanel Frontdest;
     public static javax.swing.JTable GuestIdTable;
     public static javax.swing.JTable GuestIdTable_reservation;
@@ -5637,6 +7280,8 @@ public class Main_Window extends javax.swing.JFrame {
     public static javax.swing.JLabel User_image_lbl;
     public static javax.swing.JTable ViewBookedRooms;
     public static javax.swing.JTable ViewFoodTable;
+    public static javax.swing.JTable ViewFooditem_card;
+    public static javax.swing.JTable ViewFooditem_oder;
     public javax.swing.JPanel account_base;
     private javax.swing.JPanel addNewroom;
     public static javax.swing.JPanel addfood1;
@@ -5644,6 +7289,7 @@ public class Main_Window extends javax.swing.JFrame {
     private javax.swing.JPanel bg;
     public static javax.swing.JPanel bill_base;
     public static javax.swing.JTextArea bill_display;
+    public static javax.swing.JTextArea bill_display1;
     public static javax.swing.JPanel bill_statistic;
     public static javax.swing.JPanel btn_account_setting;
     public static javax.swing.JPanel btn_bill_and_report;
@@ -5653,6 +7299,7 @@ public class Main_Window extends javax.swing.JFrame {
     public static javax.swing.JPanel btn_housekeeping;
     public static javax.swing.JPanel btn_inventory;
     public static javax.swing.JPanel btn_room_and_hall;
+    private javax.swing.ButtonGroup buttonGroup1Food_order;
     public javax.swing.JPanel change_password;
     private javax.swing.JButton changepwdBTN;
     public static javax.swing.JCheckBox comEditCh;
@@ -5660,13 +7307,25 @@ public class Main_Window extends javax.swing.JFrame {
     private javax.swing.JButton createuserBTN;
     public static javax.swing.JPanel finance_reports;
     public static javax.swing.JPanel foodPackage;
+    public static javax.swing.JTextField food_bill_guest_id;
+    public static javax.swing.JTextField food_bill_id;
     public static javax.swing.JLabel food_description_out;
     public static javax.swing.JLabel food_image_lable;
     public static javax.swing.JLabel food_image_lable1;
     public static javax.swing.JLabel food_name_out;
+    public static javax.swing.JTextField food_oder_bill_warning;
+    public static javax.swing.JTextField food_order_FinalAmount;
+    public static javax.swing.JTextField food_order_id;
     public static javax.swing.JLabel food_price_out;
     public static javax.swing.JLabel food_price_out1;
     public static javax.swing.JLabel food_type_out;
+    public static javax.swing.JTextField foodbill_Cash_on_hand;
+    public static javax.swing.JTextField foodbill_amount;
+    public static javax.swing.JTextField foodbill_balance;
+    public static javax.swing.JTextField foodbill_discount;
+    public static javax.swing.JTextField foodbill_guest_address;
+    public static javax.swing.JTextField foodbill_guest_name;
+    public static javax.swing.JTextField foodbill_taxes;
     private javax.swing.JPanel frontDeskBase;
     private javax.swing.JButton guestRegistrationBTN;
     public static javax.swing.JTextField guest_address;
@@ -5706,7 +7365,16 @@ public class Main_Window extends javax.swing.JFrame {
     private javax.swing.JButton jButton32;
     private javax.swing.JButton jButton33;
     private javax.swing.JButton jButton34;
+    private javax.swing.JButton jButton35;
+    private javax.swing.JButton jButton36;
+    private javax.swing.JButton jButton37;
+    private javax.swing.JButton jButton38;
+    private javax.swing.JButton jButton39;
     private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton40;
+    private javax.swing.JButton jButton41;
+    private javax.swing.JButton jButton42;
+    private javax.swing.JButton jButton43;
     private javax.swing.JButton jButton5;
     public static javax.swing.JButton jButton6;
     public static javax.swing.JButton jButton7;
@@ -5723,6 +7391,7 @@ public class Main_Window extends javax.swing.JFrame {
     public static javax.swing.JComboBox<String> jComboBoxroomBedtype;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel100;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
@@ -5805,12 +7474,36 @@ public class Main_Window extends javax.swing.JFrame {
     public javax.swing.JLabel jLabel83;
     private javax.swing.JLabel jLabel84;
     public javax.swing.JLabel jLabel85;
+    private javax.swing.JLabel jLabel86;
+    private javax.swing.JLabel jLabel87;
+    private javax.swing.JLabel jLabel88;
+    private javax.swing.JLabel jLabel89;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JLabel jLabel90;
+    public javax.swing.JLabel jLabel91;
+    private javax.swing.JLabel jLabel92;
+    private javax.swing.JLabel jLabel93;
+    private javax.swing.JLabel jLabel94;
+    private javax.swing.JLabel jLabel95;
+    private javax.swing.JLabel jLabel96;
+    public javax.swing.JLabel jLabel97;
+    public javax.swing.JLabel jLabel98;
+    private javax.swing.JLabel jLabel99;
     private javax.swing.JLabel jLabelpwdswarnning;
+    public static javax.swing.JPanel jPanel1;
+    public static javax.swing.JPanel jPanelFood_order_confirm;
     public static javax.swing.JPasswordField jPassword_change_confirm;
     public static javax.swing.JPasswordField jPassword_change_new;
     public static javax.swing.JPasswordField jPassword_newUser;
+    public static javax.swing.JRadioButton jRadioButton1;
+    public static javax.swing.JRadioButton jRadioButton2;
+    public static javax.swing.JRadioButton jRadioButton3;
+    public static javax.swing.JRadioButton jRadioButton4;
+    public static javax.swing.JRadioButton jRadioButton5;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane10;
+    private javax.swing.JScrollPane jScrollPane11;
+    private javax.swing.JScrollPane jScrollPane12;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
@@ -5865,11 +7558,28 @@ public class Main_Window extends javax.swing.JFrame {
     private javax.swing.JSeparator jSeparator49;
     private javax.swing.JSeparator jSeparator5;
     private javax.swing.JSeparator jSeparator50;
+    private javax.swing.JSeparator jSeparator51;
+    private javax.swing.JSeparator jSeparator52;
+    private javax.swing.JSeparator jSeparator53;
+    private javax.swing.JSeparator jSeparator54;
+    private javax.swing.JSeparator jSeparator55;
+    private javax.swing.JToolBar.Separator jSeparator56;
+    private javax.swing.JSeparator jSeparator57;
+    private javax.swing.JSeparator jSeparator58;
+    private javax.swing.JSeparator jSeparator59;
     private javax.swing.JSeparator jSeparator6;
+    private javax.swing.JSeparator jSeparator60;
+    private javax.swing.JSeparator jSeparator61;
+    private javax.swing.JSeparator jSeparator62;
+    private javax.swing.JSeparator jSeparator63;
+    private javax.swing.JSeparator jSeparator64;
+    private javax.swing.JSeparator jSeparator65;
+    private javax.swing.JSeparator jSeparator66;
     private javax.swing.JSeparator jSeparator7;
     private javax.swing.JSeparator jSeparator8;
     private javax.swing.JSeparator jSeparator9;
     public static javax.swing.JTable jTableGuest;
+    public static javax.swing.JToolBar jToolBar1;
     public static javax.swing.JLabel lbl_userType;
     public static javax.swing.JTextField new_user_addres1_in;
     public static javax.swing.JTextField new_user_addres2_in;
@@ -5877,6 +7587,11 @@ public class Main_Window extends javax.swing.JFrame {
     public static javax.swing.JTextField new_user_nic_in;
     public static javax.swing.JLabel new_user_warning_text;
     public static javax.swing.JTextField new_username_in;
+    public static javax.swing.JTextField oder_food_name;
+    public static javax.swing.JTextField oder_food_qty;
+    public static javax.swing.JTextField oder_food_total_price;
+    public static javax.swing.JTextField oder_food_unit_price;
+    public static javax.swing.JTextField oder_food_warning;
     public static javax.swing.JPanel orderFood;
     private javax.swing.JButton profileBTN;
     public static javax.swing.JLabel profile_warning_text1;
@@ -5884,6 +7599,7 @@ public class Main_Window extends javax.swing.JFrame {
     public static javax.swing.JTextField res_Cash_on_hand;
     public static javax.swing.JTextField res_advance_amount;
     public static javax.swing.JTextField res_basic_amount;
+    public static javax.swing.JTextField res_bill_id;
     public static javax.swing.JTextField res_discount;
     public static javax.swing.JTextField res_guest_address;
     public static javax.swing.JTextField res_guest_email;
