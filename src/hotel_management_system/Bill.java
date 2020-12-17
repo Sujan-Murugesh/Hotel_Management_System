@@ -166,27 +166,27 @@ public class Bill extends Main_Window {
     public void insert_reservation_bill_data() {
         //res_bill_id,guest_id,reservation_amount,tax,discount,advance_amount,	total_res_amount,payable_amount
         try {
-            ps = conn.prepareStatement("INSERT INTO `reservationbill`(`res_bill_id`,`guest_id`,`reservation_amount`,`tax`,`discount`,`advance_amount`,`total_res_amount`,`payable_amount`)values(?,?,?,?,?,?,?,?)");
+            ps = conn.prepareStatement("INSERT INTO `reservationbill`(`res_bill_id`,`guest_id`,`reservation_id`,`reservation_amount`,`tax`,`discount`,`advance_amount`,`total_res_amount`,`payable_amount`)values(?,?,?,?,?,?,?,?,?)");
             ps.setString(1, res_bill_id.getText());
             ps.setString(2, res_guest_id.getText());
-
+            ps.setString(3, res_reservation_id.getText());
             double res_amount = Double.parseDouble(res_basic_amount.getText());
-            ps.setDouble(3, res_amount);
+            ps.setDouble(4, res_amount);
 
             double taxes = Double.parseDouble(res_taxes.getText());
-            ps.setDouble(4, taxes);
+            ps.setDouble(5, taxes);
 
             double disct = Double.parseDouble(res_discount.getText());
-            ps.setDouble(5, disct);
+            ps.setDouble(6, disct);
 
             double ad = Double.parseDouble(res_advance_amount.getText());
-            ps.setDouble(6, ad);
+            ps.setDouble(7, ad);
 
             double tra = Double.parseDouble(res_total_amount.getText());
-            ps.setDouble(6, tra);
+            ps.setDouble(8, tra);
 
             double pa = Double.parseDouble(res_Balance_resAmount.getText());
-            ps.setDouble(6, pa);
+            ps.setDouble(9, pa);
             ps.executeUpdate();
             clearing_reservation_form_feilds();
         } catch (NumberFormatException | SQLException e) {

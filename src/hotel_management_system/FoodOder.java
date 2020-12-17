@@ -1,8 +1,5 @@
 package hotel_management_system;
 
-import static hotel_management_system.Main_Window.AddFoodTable;
-import static hotel_management_system.Main_Window.Add_food_id;
-import static hotel_management_system.Main_Window.FoodWarningText;
 import static hotel_management_system.Main_Window.ViewFooditem_card;
 import java.awt.Color;
 import java.awt.HeadlessException;

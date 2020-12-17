@@ -58,7 +58,7 @@ public class Reservation extends Main_Window {
                 Dynamic_Panel.removeAll();
                 Dynamic_Panel.repaint();
                 Dynamic_Panel.revalidate();
-                Dynamic_Panel.add(Billing_And_Report);
+                Dynamic_Panel.add(Billing_And_Report.add(Reservation_bill));
                 Dynamic_Panel.repaint();
                 Dynamic_Panel.revalidate();
                 txt_dynamic_title_bar.setText("Billing and Report Generating...");
