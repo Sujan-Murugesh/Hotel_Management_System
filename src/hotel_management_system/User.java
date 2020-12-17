@@ -67,14 +67,15 @@ public class User extends Main_Window {
         new_username_in.setBackground(new Color(197, 232, 240));
     }
 
+    
     //==========================********************************************====================
     //==========================********************************************====================
     //============================TO INSERTING NEW USER DATA INTO THE DATABASE==========
     public void input_new_user() {
         //checking if the user name aleady created o not....
-        if (chUname()) {
-            JOptionPane.showMessageDialog(null, "Sorry! username already created..", "Not Allowed", HEIGHT);
-        } else {
+//        if (chUname()) {
+//            JOptionPane.showMessageDialog(null, "Sorry! username already created..", "Not Allowed", HEIGHT);
+//        } else {
             //=========================================
             String encryptePwd = null;
             String Utype = "Staff";
@@ -138,7 +139,7 @@ public class User extends Main_Window {
                     JOptionPane.showMessageDialog(null, e.getMessage());
                 } catch (NoSuchAlgorithmException ex) {
                     Logger.getLogger(Main_Window.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                //}
             }
         }
     }

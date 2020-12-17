@@ -18,7 +18,7 @@ public class Date_Time{
      *
      */
     public void showDate(){
-        SimpleDateFormat d1 = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat d1 = new SimpleDateFormat("MM-dd-yyyy");
         Date d = new Date();
         DateLbl.setText(d1.format(d));
     }
